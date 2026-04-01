@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, View, Button } from 'react-native';
+import { Text } from 'react-native-paper';
 
 export default function Library() {
     
     return (
         <View style={styles.container}>
-            <Text>Library</Text>
+            <Text variant='displaySmall'>Library</Text>
         </View>
     );
 }
