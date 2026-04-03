@@ -1,0 +1,50 @@
+// https://docs.expo.dev/versions/latest/sdk/sqlite/
+
+import * as SQLite from 'expo-sqlite';
+
+const db = await SQLite.openDatabaseAsync('treenilokidb');
+
+export const initialize = async () => {
+    try {
+        await createTables();
+    } catch (error) {
+        console.error('Could not open database', error);
+    }
+}
+
+const createTables = async () => {
+    try {
+        await db.execAsync(`
+            CREATE TABLE IF NOT EXISTS workout (
+                workout_id INTEGER PRIMARY KEY NOT NULL, 
+                date TEXT NOT NULL
+            );
+            
+            CREATE TABLE IF NOT EXISTS exercise (
+                exercise_id INTEGER PRIMARY KEY NOT NULL, 
+                name TEXT NOT NULL, 
+                equipment TEXT, 
+                direction TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS workout_exercise (
+                workout_exercise_id INTEGER PRIMARY KEY NOT NULL, 
+                workout_id INTEGER NOT NULL, 
+                exercise_id INTEGER NOT NULL, 
+                FOREIGN KEY(workout_id) REFERENCES workout(workout_id), 
+                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
+                );
+
+            CREATE TABLE IF NOT EXISTS set_entry (
+                set_entry_id INTEGER PRIMARY KEY NOT NULL, 
+                workout_exercise_id INTEGER NOT NULL, 
+                weight INTEGER, 
+                reps INTEGER, 
+                FOREIGN KEY(workout_exercise_id) REFERENCES workout_exercise(workout_exercise_id)
+            );
+    `);
+    } catch (error) {
+        console.error('Could not create tables', error);
+    }
+};
+

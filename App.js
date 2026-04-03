@@ -4,12 +4,17 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './Home';
 import Library from './Library';
-import { Icon } from 'react-native-paper';
+import { Icon, MD3Colors } from 'react-native-paper';
 import { PaperProvider } from 'react-native-paper';
+import { useEffect } from 'react';
+import { initialize } from './Database';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+
+  useEffect(() => { initialize(); }, []);
+
   return (
     <PaperProvider>
       <NavigationContainer>
@@ -25,7 +30,7 @@ export default function App() {
               } else if (route.name === 'Liikepankki') {
                 iconName = focused ? 'weight-lifter' : 'weight-lifter';
               }
-              return <Icon source={iconName} size={30} />;
+              return <Icon source={iconName} color={MD3Colors.primary50} size={30} />;
             }
           })}>
           <Tab.Screen name="Koti" component={Home} />
