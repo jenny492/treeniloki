@@ -6,10 +6,15 @@ import Home from './Home';
 import Library from './Library';
 import { Icon } from 'react-native-paper';
 import { PaperProvider } from 'react-native-paper';
+import { useEffect } from 'react';
+import { initialize } from './Database';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+
+  
+
   return (
     <PaperProvider>
       <NavigationContainer>
