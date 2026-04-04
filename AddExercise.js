@@ -1,47 +1,13 @@
-import { StyleSheet, Text, View, Button } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { useEffect, useState } from 'react';
-import { initialize, db } from './Database';
+import { StyleSheet, View } from 'react-native';
+import { Button, Text } from 'react-native-paper';
 
-export default function AddExercise() {
-
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [exercise, setExercise] = useState([]);
-
-  const fetchExercises = async () => {
-    try {
-      const result = await db.getAllAsync('SELECT * FROM exercise');
-      const formatted = result.map((item) => ({
-        label: item.name,
-        value: item.exercise_id
-
-      }));
-      setExercise(formatted);
-    } catch (error) {
-      console.error('Could not fetch exercises', error);
-    }
-  };
-
-  useEffect(() => {
-    const init = async () => {
-      await initialize();
-      await fetchExercises();
-    };
-
-    init();
-  }, []);
-
+export default function AddExercise({ navigation }) {
   return (
     <View style={styles.container}>
-      <DropDownPicker
-        open={open}
-        value={value}
-        items={exercise}
-        setOpen={setOpen}
-        setValue={setValue}
-        setItems={setExercise}
-      />
+      <Button mode="contained" onPress={() => navigation.navigate('NewExercise')}>
+        Press me
+      </Button>
+      <Text>Käytä pohjana edellistä</Text>
     </View>
   );
 }

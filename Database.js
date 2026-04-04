@@ -15,6 +15,11 @@ export const initialize = async () => {
 const createTables = async () => {
     try {
         await db.execAsync(`
+            DROP TABLE IF EXISTS set_entry;
+            DROP TABLE IF EXISTS workout_exercise;
+            DROP TABLE IF EXISTS workout;
+            DROP TABLE IF EXISTS exercise;
+
             CREATE TABLE IF NOT EXISTS workout (
                 workout_id INTEGER PRIMARY KEY NOT NULL, 
                 date TEXT NOT NULL
@@ -22,7 +27,7 @@ const createTables = async () => {
             
             CREATE TABLE IF NOT EXISTS exercise (
                 exercise_id INTEGER PRIMARY KEY NOT NULL, 
-                name TEXT NOT NULL,  
+                name TEXT NOT NULL UNIQUE,  
                 direction TEXT
             );
 
