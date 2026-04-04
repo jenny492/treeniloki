@@ -61,3 +61,23 @@ const createTables = async () => {
     }
 }
 
+export const createWorkout = async () => {
+    try {
+        await db.execAsync(`
+            INSERT INTO workout (date) VALUES (date('now'));
+        `);
+    } catch (error) {
+        console.error('Could not create workout', error);
+    }  
+}
+
+export const getAllExercises = async () => {
+    try {
+        const result = await db.getAllAsync('SELECT * FROM exercise');  
+        return result;
+    } catch (error) {
+        console.error('Could not fetch exercises', error);
+        return [];
+    }
+}
+
