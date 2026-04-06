@@ -13,9 +13,9 @@ export default function NewExercise({ navigation }) {
     const [exercises, setExercises] = useState([]);
     const [workoutId, setWorkoutId] = useState('');
 
-    const [setFields, setSetFields] = useState([{ weight: 0, reps: 0 }]);
-    const [weight, setWeight] = useState(0);
-    const [reps, setReps] = useState(0);
+    const [setFields, setSetFields] = useState([]);
+    const [weight, setWeight] = useState('');
+    const [reps, setReps] = useState('');
 
     const fetchExercises = async () => {
         try {
@@ -65,6 +65,7 @@ export default function NewExercise({ navigation }) {
 
     return (
         <View style={styles.container}>
+
             <DropDownPicker
                 placeholder='Valitse liike'
                 open={open}
@@ -89,17 +90,19 @@ export default function NewExercise({ navigation }) {
                     keyboardType='numeric'
                 />
             </View>
+            <Button mode="contained" onPress={handleSaveReps}>
+                Lisää toistoja
+            </Button>
 
             <FlatList
                 data={setFields}
                 renderItem={({ item }) =>
-                    <View>
+                    <View style={{ flexDirection:'row' }}>
+                        <Text>{exercises.find((exercise) => exercise.value === value)?.label} </Text>
                         <Text>{item.weight} kg, {item.reps} toistoa</Text>
                     </View>}
             />
-            <Button mode="contained" onPress={handleSaveReps}>
-                Lisää toistoja
-            </Button>
+            
 
         </View>
     );
