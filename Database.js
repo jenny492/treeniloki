@@ -57,10 +57,10 @@ const createTables = async () => {
 
 export const createWorkout = async () => {
     try {
-        const result = await db.execAsync(`
-            INSERT INTO workout (date) VALUES (date('now')) RETURNING workout_id;
-        `);
-        return result;
+        await db.runAsync('INSERT INTO workout (date) VALUES (date(\'now\'))');
+        const result = await db.getAllAsync('SELECT last_insert_rowid();'); // https://forum.xojo.com/t/sqlite-return-id-of-record-inserted/37896/3
+        console.log('Created workout with id', result);
+        return result[0]['last_insert_rowid()'];
     } catch (error) {
         console.error('Could not create workout', error);
     }  
@@ -73,6 +73,14 @@ export const getAllExercises = async () => {
     } catch (error) {
         console.error('Could not fetch exercises', error);
         return [];
+    }
+}
+
+export const saveReps = async (workoutId, exerciseId, weight, reps) => {
+    try {
+        await db.runAsync('INSERT INTO set_entry (workout_id, exercise_id, weight, reps) VALUES (?, ?, ?, ?)', Number(workoutId), Number(exerciseId), Number(weight), Number(reps));
+    } catch (error) {
+        console.error('Could not save reps', error);
     }
 }
 

@@ -9,9 +9,9 @@ import { initialize, getAllExercises, createWorkout, saveReps } from './Database
 export default function NewExercise({ navigation }) {
 
     const [open, setOpen] = useState(false);
-    const [exercise, setExercise] = useState(null);
+    const [value, setValue] = useState(null);
     const [exercises, setExercises] = useState([]);
-    const [workout, setWorkout] = useState(null);
+    const [workoutId, setWorkoutId] = useState('');
 
     const [setFields, setSetFields] = useState([{ weight: 0, reps: 0 }]);
     const [weight, setWeight] = useState(0);
@@ -27,30 +27,37 @@ export default function NewExercise({ navigation }) {
                     value: item.exercise_id
                 }));
             setExercises(formatted);
+            console.log('Exercises', exercises)
+            console.log('Fetched exercises', formatted);
         } catch (error) {
             console.error('Could not fetch exercises', error);
         }
     };
 
-    const saveReps = async () => {
-        if (!workout) {
+    const handleSaveReps = async () => {
+        console.log(workoutId);
+        if (!workoutId) {
             console.error('No workout found');
             return;
         }
         try {
-            await saveReps(workout.workout_id, weight, reps);
+            await saveReps(workoutId, value, weight, reps);
+            setSetFields((prev) => [
+                ...prev,
+                { weight, reps }
+            ]);
         } catch (error) {
             console.error('Could not save reps', error);
         }
-        console.log(workout);
+        console.log('Workout ID:', workoutId);
     };
 
     useEffect(() => {
         const init = async () => {
             await initialize();
-            await createWorkout().then((result) => setWorkout(result));
+            await createWorkout().then((result) => setWorkoutId(result));
             await fetchExercises();
-            
+
         };
 
         init();
@@ -61,10 +68,10 @@ export default function NewExercise({ navigation }) {
             <DropDownPicker
                 placeholder='Valitse liike'
                 open={open}
-                value={exercise}
+                value={value}
                 items={exercises}
                 setOpen={setOpen}
-                setValue={setExercise}
+                setValue={setValue}
                 setItems={setExercises}
             />
 
@@ -72,10 +79,14 @@ export default function NewExercise({ navigation }) {
                 <TextInput
                     label="Paino"
                     value={weight}
+                    onChangeText={setWeight}
+                    keyboardType='numeric'
                 />
                 <TextInput
                     label="Toistot"
                     value={reps}
+                    onChangeText={setReps}
+                    keyboardType='numeric'
                 />
             </View>
 
@@ -86,7 +97,7 @@ export default function NewExercise({ navigation }) {
                         <Text>{item.weight} kg, {item.reps} toistoa</Text>
                     </View>}
             />
-            <Button mode="contained" onPress={saveReps}>
+            <Button mode="contained" onPress={handleSaveReps}>
                 Lisää toistoja
             </Button>
 
