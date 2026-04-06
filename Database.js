@@ -28,26 +28,20 @@ const createTables = async () => {
             CREATE TABLE IF NOT EXISTS exercise (
                 exercise_id INTEGER PRIMARY KEY NOT NULL, 
                 name TEXT NOT NULL UNIQUE,  
-                direction TEXT
-            );
-
-            CREATE TABLE IF NOT EXISTS workout_exercise (
-                workout_exercise_id INTEGER PRIMARY KEY NOT NULL, 
-                workout_id INTEGER NOT NULL, 
-                exercise_id INTEGER NOT NULL, 
-                FOREIGN KEY(workout_id) REFERENCES workout(workout_id), 
-                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
+                instruction TEXT
             );
 
             CREATE TABLE IF NOT EXISTS set_entry (
-                set_entry_id INTEGER PRIMARY KEY NOT NULL, 
-                workout_exercise_id INTEGER NOT NULL, 
+                set_entry_id INTEGER PRIMARY KEY NOT NULL,
+                workout_id INTEGER NOT NULL, 
+                exercise_id INTEGER NOT NULL, 
                 weight INTEGER, 
                 reps INTEGER, 
-                FOREIGN KEY(workout_exercise_id) REFERENCES workout_exercise(workout_exercise_id)
+                FOREIGN KEY(workout_id) REFERENCES workout(workout_id),
+                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
             );
 
-            INSERT INTO exercise (name, direction) VALUES
+            INSERT INTO exercise (name, instruction) VALUES
                 ('Kyykky', ''),
                 ('Penkkipunnerrus', ''),
                 ('Maastaveto', ''),
@@ -63,9 +57,10 @@ const createTables = async () => {
 
 export const createWorkout = async () => {
     try {
-        await db.execAsync(`
-            INSERT INTO workout (date) VALUES (date('now'));
+        const result = await db.execAsync(`
+            INSERT INTO workout (date) VALUES (date('now')) RETURNING workout_id;
         `);
+        return result;
     } catch (error) {
         console.error('Could not create workout', error);
     }  
