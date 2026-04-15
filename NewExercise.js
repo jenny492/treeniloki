@@ -1,6 +1,6 @@
 // https://hossein-zare.github.io/react-native-dropdown-picker-website/
 
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useEffect, useState } from 'react';
@@ -35,21 +35,31 @@ export default function NewExercise({ navigation }) {
     };
 
     const handleSaveReps = async () => {
-        console.log(workoutId);
         if (!workoutId) {
             console.error('No workout found');
+            return;
+        } else if (!value) {
+            Alert.alert('Valitse liike');
             return;
         }
         try {
             await saveReps(workoutId, value, weight, reps);
+
+            const selectedExercise = exercises.find((exercise) => exercise.value === value);
+
             setSetFields((prev) => [
                 ...prev,
-                { weight, reps }
+                { exerciseName: selectedExercise.label, weight, reps }
             ]);
         } catch (error) {
             console.error('Could not save reps', error);
         }
         console.log('Workout ID:', workoutId);
+    };
+
+    const handleNextExercise = async () => {
+        Alert.alert('Harjoitus tallennettu');
+        navigation.navigate('Koti');
     };
 
     useEffect(() => {
@@ -91,17 +101,23 @@ export default function NewExercise({ navigation }) {
                 />
             </View>
             <Button mode="contained" onPress={handleSaveReps}>
-                Lisää toistoja
+                Lisää toistot
             </Button>
 
             <FlatList
                 data={setFields}
                 renderItem={({ item }) =>
                     <View style={{ flexDirection:'row' }}>
-                        <Text>{exercises.find((exercise) => exercise.value === value)?.label} </Text>
+                        <Text>{item.exerciseName} </Text>
                         <Text>{item.weight} kg, {item.reps} toistoa</Text>
                     </View>}
             />
+
+            <Button mode="contained" onPress={handleNextExercise}>
+                Seuraava liike
+            </Button>
+
+            <FlatList />
             
 
         </View>

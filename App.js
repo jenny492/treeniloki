@@ -17,19 +17,15 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 export default function App() {
- 
+
   const ExerciseStack = () => {
     return (
-        <Stack.Navigator
-            screenOptions={{
-              headerShown: false
-            }}>
-          <Stack.Screen name="AddExercise" component={AddExercise} />
-          <Stack.Screen name="NewExercise" component={NewExercise} />
-        </Stack.Navigator>
+      <Stack.Navigator>
+        <Stack.Screen name="Lisää harjoitus" component={AddExercise} />
+        <Stack.Screen name="Uusi" component={NewExercise} /> 
+      </Stack.Navigator>
     );
   }
-
 
   return (
     <PaperProvider>
@@ -50,7 +46,7 @@ export default function App() {
             }
           })}>
           <Tab.Screen name="Koti" component={Home} />
-          <Tab.Screen name="Lisää harjoitus" component={ExerciseStack} options={{}} />
+          <Tab.Screen name="Lisää harjoitus" component={ExerciseStack} options={{ headerShown: false }} />
           <Tab.Screen name="Liikepankki" component={Library} />
         </Tab.Navigator>
       </NavigationContainer>

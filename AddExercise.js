@@ -4,8 +4,8 @@ import { Button, Text } from 'react-native-paper';
 export default function AddExercise({ navigation }) {
   return (
     <View style={styles.container}>
-      <Button mode="contained" onPress={() => navigation.navigate('NewExercise')}>
-        Press me
+      <Button mode="contained" onPress={() => navigation.navigate('Uusi')}>
+        Uusi harjoitus
       </Button>
       <Text>Käytä pohjana edellistä</Text>
     </View>
