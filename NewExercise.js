@@ -1,4 +1,5 @@
 // https://hossein-zare.github.io/react-native-dropdown-picker-website/
+// https://stackoverflow.com/questions/30266831/hide-show-components-in-react-native elementtien pillottaminen ja näyttäminen
 
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
@@ -9,9 +10,12 @@ import { initialize, getAllExercises, createWorkout, saveReps } from './Database
 export default function NewExercise({ navigation }) {
 
     const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
+    const [exerciseValue, setExerciseValue] = useState(null);
     const [exercises, setExercises] = useState([]);
     const [workoutId, setWorkoutId] = useState('');
+    const [showDropdown, setShowDropdown] = useState(true);
+    const [showReps, setShowReps] = useState(false);
+    const [showNextButton, setShowNextButton] = useState(false);
 
     const [setFields, setSetFields] = useState([]);
     const [weight, setWeight] = useState('');
@@ -38,14 +42,14 @@ export default function NewExercise({ navigation }) {
         if (!workoutId) {
             console.error('No workout found');
             return;
-        } else if (!value) {
+        } else if (!exerciseValue) {
             Alert.alert('Valitse liike');
             return;
         }
         try {
-            await saveReps(workoutId, value, weight, reps);
+            await saveReps(workoutId, exerciseValue, weight, reps);
 
-            const selectedExercise = exercises.find((exercise) => exercise.value === value);
+            const selectedExercise = exercises.find((exercise) => exercise.value === exerciseValue);
 
             setSetFields((prev) => [
                 ...prev,
@@ -59,7 +63,12 @@ export default function NewExercise({ navigation }) {
 
     const handleNextExercise = async () => {
         Alert.alert('Harjoitus tallennettu');
-        navigation.navigate('Koti');
+        setShowDropdown(true);
+        setShowReps(false);
+        setShowNextButton(false);
+        setExerciseValue(null);
+        setWeight('');
+        setReps('');
     };
 
     useEffect(() => {
@@ -67,26 +76,37 @@ export default function NewExercise({ navigation }) {
             await initialize();
             await createWorkout().then((result) => setWorkoutId(result));
             await fetchExercises();
-
         };
 
         init();
     }, []);
 
+    useEffect(() => {
+    if (exerciseValue !== null) {
+        setShowDropdown(false);
+        setShowReps(true);
+        setShowNextButton(true);
+    }
+
+}, [exerciseValue]);
+
     return (
         <View style={styles.container}>
+            {showDropdown && (
+                <DropDownPicker
+                    placeholder='Valitse liike'
+                    open={open}
+                    value={exerciseValue}
+                    items={exercises}
+                    setOpen={setOpen}
+                    setValue={setExerciseValue}
+                    setItems={setExercises}
+                />
+            )}
 
-            <DropDownPicker
-                placeholder='Valitse liike'
-                open={open}
-                value={value}
-                items={exercises}
-                setOpen={setOpen}
-                setValue={setValue}
-                setItems={setExercises}
-            />
-
+            {showReps && (
             <View style={styles.setFields}>
+                <Text>{exercises.find((ex) => ex.value === exerciseValue)?.label}</Text>
                 <TextInput
                     label="Paino"
                     value={weight}
@@ -99,26 +119,30 @@ export default function NewExercise({ navigation }) {
                     onChangeText={setReps}
                     keyboardType='numeric'
                 />
-            </View>
+            
             <Button mode="contained" onPress={handleSaveReps}>
                 Lisää toistot
             </Button>
+            </View>
+            )}
 
             <FlatList
                 data={setFields}
                 renderItem={({ item }) =>
-                    <View style={{ flexDirection:'row' }}>
+                    <View style={{ flexDirection: 'row' }}>
                         <Text>{item.exerciseName} </Text>
                         <Text>{item.weight} kg, {item.reps} toistoa</Text>
                     </View>}
             />
 
-            <Button mode="contained" onPress={handleNextExercise}>
-                Seuraava liike
-            </Button>
+            {showNextButton && (
+                <Button mode="contained" onPress={handleNextExercise}>
+                    Seuraava liike
+                </Button>
+            )}
 
             <FlatList />
-            
+
 
         </View>
     );
