@@ -49,7 +49,7 @@ const createTables = async () => {
                 ('Leuanveto', ''),
                 ('Kulmasoutu', '');
     `);
-    
+
     } catch (error) {
         console.error('Could not create tables', error);
     }
@@ -63,12 +63,13 @@ export const createWorkout = async () => {
         return result[0]['last_insert_rowid()'];
     } catch (error) {
         console.error('Could not create workout', error);
-    }  
+        return null;
+    }
 }
 
 export const getAllExercises = async () => {
     try {
-        const result = await db.getAllAsync('SELECT * FROM exercise');  
+        const result = await db.getAllAsync('SELECT * FROM exercise');
         return result;
     } catch (error) {
         console.error('Could not fetch exercises', error);
@@ -81,6 +82,27 @@ export const saveReps = async (workoutId, exerciseId, weight, reps) => {
         await db.runAsync('INSERT INTO set_entry (workout_id, exercise_id, weight, reps) VALUES (?, ?, ?, ?)', Number(workoutId), Number(exerciseId), Number(weight), Number(reps));
     } catch (error) {
         console.error('Could not save reps', error);
+    }
+}
+
+export const getSetsForExercise = async (workoutId, exerciseId) => {
+    try {
+        const result = await db.getAllAsync('SELECT * FROM set_entry JOIN exercise ON set_entry.exercise_id = exercise.exercise_id WHERE set_entry.workout_id = ? AND set_entry.exercise_id = ?', Number(workoutId), Number(exerciseId));
+        return result;
+    } catch (error) {
+        console.error('Could not fetch sets', error);
+        return [];
+    }
+}
+
+//mahdollisesti turha
+export const getExerciseById = async (exerciseId) => {
+    try {
+        const result = await db.getAllAsync('SELECT * FROM exercise WHERE exercise_id = ?', Number(exerciseId));
+        return result[0];
+    } catch (error) {
+        console.error('Could not fetch exercise', error);
+        return null;
     }
 }
 

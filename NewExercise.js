@@ -2,17 +2,19 @@
 // https://stackoverflow.com/questions/30266831/hide-show-components-in-react-native elementtien pillottaminen ja näyttäminen
 
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
-import { Button, TextInput } from 'react-native-paper';
+import { Button, Card, IconButton, TextInput } from 'react-native-paper';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useEffect, useState } from 'react';
-import { initialize, getAllExercises, createWorkout, saveReps } from './Database';
+import { initialize, getAllExercises, createWorkout, saveReps, getSetsForExercise } from './Database';
 
 export default function NewExercise({ navigation }) {
 
     const [open, setOpen] = useState(false);
     const [exerciseValue, setExerciseValue] = useState(null);
     const [exercises, setExercises] = useState([]);
+    const [sets, setSets] = useState([]);
     const [workoutId, setWorkoutId] = useState('');
+
     const [showDropdown, setShowDropdown] = useState(true);
     const [showReps, setShowReps] = useState(false);
     const [showNextButton, setShowNextButton] = useState(false);
@@ -32,7 +34,7 @@ export default function NewExercise({ navigation }) {
                 }));
             setExercises(formatted);
             console.log('Exercises', exercises)
-            console.log('Fetched exercises', formatted);
+            console.log('Formatted exercises', formatted);
         } catch (error) {
             console.error('Could not fetch exercises', error);
         }
@@ -49,6 +51,7 @@ export default function NewExercise({ navigation }) {
         try {
             await saveReps(workoutId, exerciseValue, weight, reps);
 
+            // Hakee harjoituksen nimen. Tarkista myöhemmin tarvitaanko vielä.
             const selectedExercise = exercises.find((exercise) => exercise.value === exerciseValue);
 
             setSetFields((prev) => [
@@ -62,11 +65,26 @@ export default function NewExercise({ navigation }) {
     };
 
     const handleNextExercise = async () => {
-        Alert.alert('Harjoitus tallennettu');
+        try {
+            const result = await getSetsForExercise(workoutId, exerciseValue);
+            setSets(prev => [
+                ...prev, 
+                ...result.map((set) => ({
+                    name: set.name,
+                    weight: set.weight,
+                    reps: set.reps
+                }))
+            ]);
+                console.log('Sets for workout', result);
+                console.log('Sets ', sets);
+        } catch (error) {
+            console.error('Could not fetch sets', error);
+        }
         setShowDropdown(true);
         setShowReps(false);
         setShowNextButton(false);
         setExerciseValue(null);
+        setSetFields([]);
         setWeight('');
         setReps('');
     };
@@ -82,13 +100,13 @@ export default function NewExercise({ navigation }) {
     }, []);
 
     useEffect(() => {
-    if (exerciseValue !== null) {
-        setShowDropdown(false);
-        setShowReps(true);
-        setShowNextButton(true);
-    }
+        if (exerciseValue !== null) {
+            setShowDropdown(false);
+            setShowReps(true);
+            setShowNextButton(true);
+        }
 
-}, [exerciseValue]);
+    }, [exerciseValue]);
 
     return (
         <View style={styles.container}>
@@ -105,35 +123,35 @@ export default function NewExercise({ navigation }) {
             )}
 
             {showReps && (
-            <View style={styles.setFields}>
-                <Text>{exercises.find((ex) => ex.value === exerciseValue)?.label}</Text>
-                <TextInput
-                    label="Paino"
-                    value={weight}
-                    onChangeText={setWeight}
-                    keyboardType='numeric'
-                />
-                <TextInput
-                    label="Toistot"
-                    value={reps}
-                    onChangeText={setReps}
-                    keyboardType='numeric'
-                />
-            
-            <Button mode="contained" onPress={handleSaveReps}>
-                Lisää toistot
-            </Button>
-            </View>
-            )}
+                <View>
+                    <View style={styles.setFields}>
+                        <Text>{exercises.find((ex) => ex.value === exerciseValue)?.label}</Text>
+                        <TextInput
+                            label="Paino"
+                            value={weight}
+                            onChangeText={setWeight}
+                            keyboardType='numeric'
+                        />
+                        <TextInput
+                            label="Toistot"
+                            value={reps}
+                            onChangeText={setReps}
+                            keyboardType='numeric'
+                        />
 
-            <FlatList
-                data={setFields}
-                renderItem={({ item }) =>
-                    <View style={{ flexDirection: 'row' }}>
-                        <Text>{item.exerciseName} </Text>
-                        <Text>{item.weight} kg, {item.reps} toistoa</Text>
-                    </View>}
-            />
+                        <Button mode="contained" onPress={handleSaveReps}>
+                            Lisää toistot
+                        </Button>
+                    </View>
+
+                    <FlatList
+                        data={setFields}
+                        renderItem={({ item }) =>
+                            <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                        }
+                    />
+                </View>
+            )}
 
             {showNextButton && (
                 <Button mode="contained" onPress={handleNextExercise}>
@@ -141,9 +159,20 @@ export default function NewExercise({ navigation }) {
                 </Button>
             )}
 
-            <FlatList />
-
-
+            <FlatList
+                data={sets}
+                renderItem={({ item }) =>
+                    <Card style={{ marginBottom: 10 }}>
+                        <Card.Title title={item.name} />
+                        <Card.Content>
+                            <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                        </Card.Content>
+                        <Card.Actions>
+                            <IconButton icon="delete" />
+                        </Card.Actions>
+                    </Card>
+                }
+            />
         </View>
     );
 }
