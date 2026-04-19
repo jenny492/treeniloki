@@ -15,7 +15,15 @@ export default function Home() {
       console.log('Fetched workouts ', fetchedWorkouts);
 
       const formatted = [];
-      setWorkouts(fetchedWorkouts);
+
+      Object.values(fetchedWorkouts).forEach(value => {
+        const existingWorkout = formatted.find(workout => workout.workout_id === value.workout_id);
+        console.log('formatted ', formatted);
+        formatted.push({ workout_id: value.workout_id, exercises: [] });
+        console.log(value);
+      })
+
+      setWorkouts(formatted);
     }
     catch (error) {
       console.error('could not fetch workouts', error);

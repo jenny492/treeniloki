@@ -89,14 +89,14 @@ export default function NewExercise({ navigation }) {
         navigation.navigate('Koti');
     }
 
+    const hadleNewExercise = async () => {
+        await createWorkout().then((result) => setWorkoutId(result));
+    };
+
+
     useEffect(() => {
         const init = async () => {
             await initialize();
-
-            // luodaan uusi harjoitus ainoastaan, jos nykyistä ei ole tai sitä ei ole tallennettu
-            if (workoutId.length === 0) {
-                await createWorkout().then((result) => setWorkoutId(result));
-            }
             await fetchExercises();
         };
 
@@ -114,6 +114,9 @@ export default function NewExercise({ navigation }) {
 
     return (
         <View style={styles.container}>
+            <Button mode="contained" onPress={hadleNewExercise}>
+                Uusi harjoitus
+            </Button>
             {showDropdown && (
                 <DropDownPicker
                     placeholder='Valitse liike'
