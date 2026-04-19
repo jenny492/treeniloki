@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { getAllData } from './Database';
@@ -30,7 +30,7 @@ export default function Home() {
     }
   }
   // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran(?)
-  useEffect(() => { fetchWorkouts() }, []);
+  useFocusEffect(useCallback(() => { fetchWorkouts() }, []));
 
   return (
     <View style={styles.container}>

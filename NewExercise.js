@@ -4,8 +4,9 @@
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, IconButton, TextInput } from 'react-native-paper';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { initialize, getAllExercises, createWorkout, saveReps, getSetsForExercise } from './Database';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function NewExercise({ navigation }) {
 
@@ -15,43 +16,41 @@ export default function NewExercise({ navigation }) {
     const [savedExercises, setSavedExercises] = useState([]);
     const [workoutId, setWorkoutId] = useState('');
 
-    const [showDropdown, setShowDropdown] = useState(true);
-    const [showReps, setShowReps] = useState(false);
-    const [showNextButton, setShowNextButton] = useState(false);
-
     const [currentSet, setCurrentSet] = useState([]);
     const [weight, setWeight] = useState('');
     const [reps, setReps] = useState('');
 
-    const fetchExercises = async () => {
-        try {
-            const allExercises = await getAllExercises();
-            const formatted = allExercises
-                .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-                .map((item) => ({
-                    label: item.name,
-                    value: item.exercise_id
-                }));
-            setExercises(formatted);
-            console.log('Exercises', exercises)
-            console.log('Formatted exercises', formatted);
-        } catch (error) {
-            console.error('Could not fetch exercises', error);
-        }
-    };
+    useEffect(() => {
+        const init = async () => {
+            try {
+                await initialize();
+                const allExercises = await getAllExercises();
+                const formatted = allExercises
+                    .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+                    .map((item) => ({
+                        label: item.name,
+                        value: item.exercise_id
+                    }));
+
+                setExercises(formatted);
+            } catch (error) {
+                console.error('Virhe alustuksessa', error);
+            }
+        };
+
+        init();
+    }, []);
 
     const handleAddReps = async () => {
         if (!workoutId) {
-            Alert.alert('Harjoitusta ei löytynyt');
-            console.error('No workout found');
-            return;
+            const newWorkoutId = await createWorkout();
+            setWorkoutId(newWorkoutId);
         } else if (!exerciseValue) {
             Alert.alert('Valitse liike');
             return;
         }
         try {
             await saveReps(workoutId, exerciseValue, weight, reps);
-
             setCurrentSet((prev) => [
                 ...prev,
                 { weight: weight, reps: reps }
@@ -75,9 +74,6 @@ export default function NewExercise({ navigation }) {
         } catch (error) {
             console.error('Could not fetch sets', error);
         }
-        setShowDropdown(true);
-        setShowReps(false);
-        setShowNextButton(false);
         setExerciseValue(null);
         setCurrentSet([]);
         setWeight('');
@@ -86,50 +82,25 @@ export default function NewExercise({ navigation }) {
 
     const handleSaveExercise = () => {
         setWorkoutId('');
+        setCurrentSet([]);
+        setSavedExercises([]);
         navigation.navigate('Koti');
     }
 
-    const hadleNewExercise = async () => {
-        await createWorkout().then((result) => setWorkoutId(result));
-    };
-
-
-    useEffect(() => {
-        const init = async () => {
-            await initialize();
-            await fetchExercises();
-        };
-
-        init();
-    }, []);
-
-    useEffect(() => {
-        if (exerciseValue !== null) {
-            setShowDropdown(false);
-            setShowReps(true);
-            setShowNextButton(true);
-        }
-
-    }, [exerciseValue]);
-
     return (
         <View style={styles.container}>
-            <Button mode="contained" onPress={hadleNewExercise}>
-                Uusi harjoitus
-            </Button>
-            {showDropdown && (
-                <DropDownPicker
-                    placeholder='Valitse liike'
-                    open={open}
-                    value={exerciseValue}
-                    items={exercises}
-                    setOpen={setOpen}
-                    setValue={setExerciseValue}
-                    setItems={setExercises}
-                />
-            )}
 
-            {showReps && (
+            <DropDownPicker
+                placeholder='Valitse liike'
+                open={open}
+                value={exerciseValue}
+                items={exercises}
+                setOpen={setOpen}
+                setValue={setExerciseValue}
+                setItems={setExercises}
+            />
+
+            {exerciseValue && (
                 <View>
                     <View style={styles.setFields}>
                         <Text>{exercises.find((ex) => ex.value === exerciseValue)?.label}</Text>
@@ -157,13 +128,11 @@ export default function NewExercise({ navigation }) {
                             <Text>{item.weight} kg, {item.reps} toistoa</Text>
                         }
                     />
-                </View>
-            )}
 
-            {showNextButton && (
-                <Button mode="contained" onPress={handleAddExercise}>
-                    Seuraava liike
-                </Button>
+                    <Button mode="contained" onPress={handleAddExercise}>
+                        Seuraava liike
+                    </Button>
+                </View>
             )}
 
             <FlatList

@@ -18,14 +18,14 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
 
-  const ExerciseStack = () => {
+  /* const ExerciseStack = () => {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Lisää harjoitus" component={AddExercise} />
         <Stack.Screen name="Uusi" component={NewExercise} /> 
       </Stack.Navigator>
     );
-  }
+  } */
 
   return (
     <PaperProvider>
@@ -46,7 +46,7 @@ export default function App() {
             }
           })}>
           <Tab.Screen name="Koti" component={Home} />
-          <Tab.Screen name="Lisää harjoitus" component={ExerciseStack} options={{ headerShown: false }} />
+          <Tab.Screen name="Lisää harjoitus" component={NewExercise} />
           <Tab.Screen name="Liikepankki" component={Library} />
         </Tab.Navigator>
       </NavigationContainer>
