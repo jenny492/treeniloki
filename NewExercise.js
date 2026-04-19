@@ -12,14 +12,14 @@ export default function NewExercise({ navigation }) {
     const [open, setOpen] = useState(false);
     const [exerciseValue, setExerciseValue] = useState(null);
     const [exercises, setExercises] = useState([]);
-    const [sets, setSets] = useState([]);
+    const [savedExercises, setSavedExercises] = useState([]);
     const [workoutId, setWorkoutId] = useState('');
 
     const [showDropdown, setShowDropdown] = useState(true);
     const [showReps, setShowReps] = useState(false);
     const [showNextButton, setShowNextButton] = useState(false);
 
-    const [setFields, setSetFields] = useState([]);
+    const [currentSet, setCurrentSet] = useState([]);
     const [weight, setWeight] = useState('');
     const [reps, setReps] = useState('');
 
@@ -40,8 +40,9 @@ export default function NewExercise({ navigation }) {
         }
     };
 
-    const handleSaveReps = async () => {
+    const handleAddReps = async () => {
         if (!workoutId) {
+            Alert.alert('Harjoitusta ei löytynyt');
             console.error('No workout found');
             return;
         } else if (!exerciseValue) {
@@ -51,12 +52,9 @@ export default function NewExercise({ navigation }) {
         try {
             await saveReps(workoutId, exerciseValue, weight, reps);
 
-            // Hakee harjoituksen nimen. Tarkista myöhemmin tarvitaanko vielä.
-            const selectedExercise = exercises.find((exercise) => exercise.value === exerciseValue);
-
-            setSetFields((prev) => [
+            setCurrentSet((prev) => [
                 ...prev,
-                { exerciseName: selectedExercise.label, weight, reps }
+                { weight: weight, reps: reps }
             ]);
         } catch (error) {
             console.error('Could not save reps', error);
@@ -64,19 +62,19 @@ export default function NewExercise({ navigation }) {
         console.log('Workout ID:', workoutId);
     };
 
-    const handleNextExercise = async () => {
+    const handleAddExercise = async () => {
         try {
             const result = await getSetsForExercise(workoutId, exerciseValue);
-            setSets(prev => [
-                ...prev, 
-                ...result.map((set) => ({
-                    name: set.name,
-                    weight: set.weight,
-                    reps: set.reps
-                }))
+
+            setSavedExercises(prev => [
+                ...prev,
+                {
+                    name: exercises.find((ex) => ex.value === exerciseValue)?.label,
+                    sets: currentSet
+                }
             ]);
-                console.log('Sets for workout', result);
-                console.log('Sets ', sets);
+            console.log('Sets for workout', result);
+            console.log('Sets ', savedExercises);
         } catch (error) {
             console.error('Could not fetch sets', error);
         }
@@ -84,7 +82,7 @@ export default function NewExercise({ navigation }) {
         setShowReps(false);
         setShowNextButton(false);
         setExerciseValue(null);
-        setSetFields([]);
+        setCurrentSet([]);
         setWeight('');
         setReps('');
     };
@@ -139,13 +137,13 @@ export default function NewExercise({ navigation }) {
                             keyboardType='numeric'
                         />
 
-                        <Button mode="contained" onPress={handleSaveReps}>
+                        <Button mode="contained" onPress={handleAddReps}>
                             Lisää toistot
                         </Button>
                     </View>
 
                     <FlatList
-                        data={setFields}
+                        data={currentSet}
                         renderItem={({ item }) =>
                             <Text>{item.weight} kg, {item.reps} toistoa</Text>
                         }
@@ -154,18 +152,21 @@ export default function NewExercise({ navigation }) {
             )}
 
             {showNextButton && (
-                <Button mode="contained" onPress={handleNextExercise}>
+                <Button mode="contained" onPress={handleAddExercise}>
                     Seuraava liike
                 </Button>
             )}
 
             <FlatList
-                data={sets}
+                data={savedExercises}
                 renderItem={({ item }) =>
                     <Card style={{ marginBottom: 10 }}>
                         <Card.Title title={item.name} />
                         <Card.Content>
-                            <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                            {item.sets.map((setItem, index) => (
+                                <Text key={index}>{setItem.weight} kg, {setItem.reps} toistoa</Text>
+                            ))}
+
                         </Card.Content>
                         <Card.Actions>
                             <IconButton icon="delete" />
