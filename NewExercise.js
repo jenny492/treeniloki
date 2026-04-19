@@ -14,7 +14,7 @@ export default function NewExercise({ navigation }) {
     const [exerciseValue, setExerciseValue] = useState(null);
     const [exercises, setExercises] = useState([]);
     const [savedExercises, setSavedExercises] = useState([]);
-    const [workoutId, setWorkoutId] = useState('');
+    const [workoutId, setWorkoutId] = useState(null);
 
     const [currentSet, setCurrentSet] = useState([]);
     const [weight, setWeight] = useState('');
@@ -41,16 +41,29 @@ export default function NewExercise({ navigation }) {
         init();
     }, []);
 
-    const handleAddReps = async () => {
-        if (!workoutId) {
+    const createNewWorkout = async () => {
+        try {
             const newWorkoutId = await createWorkout();
             setWorkoutId(newWorkoutId);
-        } else if (!exerciseValue) {
+            return newWorkoutId;
+        } catch (error) {
+            console.error('Virhe uuden treenin luonnissa', error);
+            return null;
+        }
+    };
+
+
+    const handleAddReps = async () => {
+        if (!exerciseValue) {
             Alert.alert('Valitse liike');
             return;
         }
         try {
-            await saveReps(workoutId, exerciseValue, weight, reps);
+            let currentWorkoutId = workoutId;
+            if (!currentWorkoutId) {
+                currentWorkoutId =await createNewWorkout();
+            }
+            await saveReps(currentWorkoutId, exerciseValue, weight, reps);
             setCurrentSet((prev) => [
                 ...prev,
                 { weight: weight, reps: reps }
@@ -58,7 +71,7 @@ export default function NewExercise({ navigation }) {
         } catch (error) {
             console.error('Could not save reps', error);
         }
-        console.log('Workout ID:', workoutId);
+        console.log('Workout ID:', currentWorkoutId);
     };
 
     const handleAddExercise = async () => {
@@ -81,7 +94,7 @@ export default function NewExercise({ navigation }) {
     };
 
     const handleSaveExercise = () => {
-        setWorkoutId('');
+        setWorkoutId(null);
         setCurrentSet([]);
         setSavedExercises([]);
         navigation.navigate('Koti');
