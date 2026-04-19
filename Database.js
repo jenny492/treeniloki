@@ -16,7 +16,6 @@ const createTables = async () => {
     try {
         await db.execAsync(`
             DROP TABLE IF EXISTS set_entry;
-            DROP TABLE IF EXISTS workout_exercise;
             DROP TABLE IF EXISTS workout;
             DROP TABLE IF EXISTS exercise;
 
@@ -77,6 +76,27 @@ export const getAllExercises = async () => {
     }
 }
 
+export const getAllData = async () => {
+    try {
+        const result = await db.getAllAsync(`
+            SELECT 
+            se.set_entry_id, 
+            w.workout_id, 
+            w.date, 
+            e.exercise_id, 
+            e.name, 
+            se.weight, 
+            se.reps 
+            FROM set_entry se 
+            JOIN workout w ON se.workout_id = w.workout_id 
+            JOIN exercise e ON se.exercise_id = e.exercise_id;`)
+        return result;
+    } catch (error) {
+        console.error('Could not fetch workouts', error);
+        return [];
+    }
+}
+
 export const saveReps = async (workoutId, exerciseId, weight, reps) => {
     try {
         await db.runAsync('INSERT INTO set_entry (workout_id, exercise_id, weight, reps) VALUES (?, ?, ?, ?)', Number(workoutId), Number(exerciseId), Number(weight), Number(reps));
@@ -85,6 +105,17 @@ export const saveReps = async (workoutId, exerciseId, weight, reps) => {
     }
 }
 
+export const getSetsByWorkoutId = async (workoutId) => {
+    try {
+        const result = await db.getAllAsync('SELECT * FROM set_entry WHERE workout_id = ?', Number(workoutId));
+        return result;
+    } catch (error) {
+        console.error('Could not fetch sets for workout', error);
+        return [];
+    }
+}
+
+// tarkista onko turha
 export const getSetsForExercise = async (workoutId, exerciseId) => {
     try {
         const result = await db.getAllAsync('SELECT * FROM set_entry JOIN exercise ON set_entry.exercise_id = exercise.exercise_id WHERE set_entry.workout_id = ? AND set_entry.exercise_id = ?', Number(workoutId), Number(exerciseId));

@@ -64,8 +64,6 @@ export default function NewExercise({ navigation }) {
 
     const handleAddExercise = async () => {
         try {
-            const result = await getSetsForExercise(workoutId, exerciseValue);
-
             setSavedExercises(prev => [
                 ...prev,
                 {
@@ -73,8 +71,7 @@ export default function NewExercise({ navigation }) {
                     sets: currentSet
                 }
             ]);
-            console.log('Sets for workout', result);
-            console.log('Sets ', savedExercises);
+
         } catch (error) {
             console.error('Could not fetch sets', error);
         }
@@ -87,10 +84,19 @@ export default function NewExercise({ navigation }) {
         setReps('');
     };
 
+    const handleSaveExercise = () => {
+        setWorkoutId('');
+        navigation.navigate('Koti');
+    }
+
     useEffect(() => {
         const init = async () => {
             await initialize();
-            await createWorkout().then((result) => setWorkoutId(result));
+
+            // luodaan uusi harjoitus ainoastaan, jos nykyistä ei ole tai sitä ei ole tallennettu
+            if (workoutId.length === 0) {
+                await createWorkout().then((result) => setWorkoutId(result));
+            }
             await fetchExercises();
         };
 
@@ -174,6 +180,10 @@ export default function NewExercise({ navigation }) {
                     </Card>
                 }
             />
+
+            <Button mode="contained" onPress={handleSaveExercise}>
+                Tallenna harjoitus
+            </Button>
         </View>
     );
 }
