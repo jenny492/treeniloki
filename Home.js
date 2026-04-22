@@ -18,11 +18,39 @@ export default function Home() {
 
       Object.values(fetchedWorkouts).forEach(value => {
         const existingWorkout = formatted.find(workout => workout.workout_id === value.workout_id);
-        console.log('formatted ', formatted);
-        formatted.push({ workout_id: value.workout_id, exercises: [] });
-        console.log(value);
-      })
+        if (!formatted.includes(existingWorkout)) {
+          formatted.push({
+            workout_id: value.workout_id,
+            exercises: []
+          });
+          console.log('pushed workout ', formatted);
+        }
+        if (existingWorkout) {
+          const existingExercise = existingWorkout.exercises.find(exercise => exercise.exercise_id === value.exercise_id);
+          if (!existingExercise) {
+            existingWorkout.exercises.push({
+              exercise_id: value.exercise_id,
+              name: value.name,
+              sets: []
+            })
+            console.log('pushed exercise ', existingExercise);
+          }
 
+          if (existingExercise) {
+            const existingSet = existingExercise.sets.find(set => set.set_entry_id === value.set_entry_id);
+            if (!existingSet) {
+              existingExercise.sets.push({
+                set_entry_id: value.set_entry_id,
+                weight: value.weight,
+                reps: value.reps
+              })
+              console.log('pushed set ', existingSet);
+            }
+          }
+        }
+
+      })
+      console.log('formatted: ', formatted);
       setWorkouts(formatted);
     }
     catch (error) {
