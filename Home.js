@@ -12,51 +12,47 @@ export default function Home() {
   const fetchWorkouts = async () => {
     try {
       const fetchedWorkouts = await getAllData();
-      console.log('Fetched workouts ', fetchedWorkouts);
 
-      const formatted = [];
-
-      Object.values(fetchedWorkouts).forEach(value => {
-        const existingWorkout = formatted.find(workout => workout.workout_id === value.workout_id);
-        if (!formatted.includes(existingWorkout)) {
-          formatted.push({
-            workout_id: value.workout_id,
+      // https://blog.logrocket.com/guide-object-groupby-alternative-array-reduce/
+      // https://medium.com/@finnkumar6/array-grouping-in-javascript-a-quick-and-efficient-guide-771a974fa4d4
+      // https://www.wisdomgeek.com/development/web-development/javascript/how-to-groupby-using-reduce-in-javascript/
+      const grouped = fetchedWorkouts.reduce((acc, currentWorkout) => {
+        const { workout_id } = currentWorkout;
+        if (!acc[workout_id]) {
+          acc[workout_id] = {
+            workout_id: currentWorkout.workout_id,
+            date: currentWorkout.date,
             exercises: []
-          });
-          console.log('pushed workout ', formatted);
-        }
-        if (existingWorkout) {
-          const existingExercise = existingWorkout.exercises.find(exercise => exercise.exercise_id === value.exercise_id);
-          if (!existingExercise) {
-            existingWorkout.exercises.push({
-              exercise_id: value.exercise_id,
-              name: value.name,
-              sets: []
-            })
-            console.log('pushed exercise ', existingExercise);
-          }
-
-          if (existingExercise) {
-            const existingSet = existingExercise.sets.find(set => set.set_entry_id === value.set_entry_id);
-            if (!existingSet) {
-              existingExercise.sets.push({
-                set_entry_id: value.set_entry_id,
-                weight: value.weight,
-                reps: value.reps
-              })
-              console.log('pushed set ', existingSet);
-            }
-          }
+          };
         }
 
-      })
-      console.log('formatted: ', formatted);
-      setWorkouts(formatted);
+        let exercise = acc[workout_id].exercises.find(ex => ex.exercise_id === currentWorkout.exercise_id);
+        if (!exercise) {
+          exercise = {
+            exercise_id: currentWorkout.exercise_id,
+            name: currentWorkout.name,
+            sets: []
+          }
+          acc[workout_id].exercises.push(exercise);
+        }
+
+        exercise.sets.push({
+          set_entry_id: currentWorkout.set_entry_id,
+          weight: currentWorkout.weight,
+          reps: currentWorkout.reps
+        });
+
+        return acc;
+      }, {});
+
+      setWorkouts(grouped);
+      console.log(grouped);
     }
     catch (error) {
       console.error('could not fetch workouts', error);
     }
   }
+
   // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran(?)
   useFocusEffect(useCallback(() => { fetchWorkouts() }, []));
 
@@ -66,7 +62,7 @@ export default function Home() {
         data={workouts}
         renderItem={({ item }) =>
           <Card>
-            <Card.Title title={item.date} />
+            <Card.Title title={item} />
             <Card.Content>
             </Card.Content>
           </Card>
