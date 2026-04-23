@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { Button, Card } from 'react-native-paper';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Button, Card, Text } from 'react-native-paper';
 import { getAllData } from './Database';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -12,11 +12,12 @@ export default function Home() {
   const fetchWorkouts = async () => {
     try {
       const fetchedWorkouts = await getAllData();
+      console.log('fetched workouts', fetchedWorkouts);
 
       // https://blog.logrocket.com/guide-object-groupby-alternative-array-reduce/
       // https://medium.com/@finnkumar6/array-grouping-in-javascript-a-quick-and-efficient-guide-771a974fa4d4
       // https://www.wisdomgeek.com/development/web-development/javascript/how-to-groupby-using-reduce-in-javascript/
-      const grouped = fetchedWorkouts.reduce((acc, currentWorkout) => {
+      const grouped = Object.values(fetchedWorkouts).reduce((acc, currentWorkout) => {
         const { workout_id } = currentWorkout;
         if (!acc[workout_id]) {
           acc[workout_id] = {
@@ -45,8 +46,7 @@ export default function Home() {
         return acc;
       }, {});
 
-      setWorkouts(grouped);
-      console.log(grouped);
+      setWorkouts(Object.values(grouped));
     }
     catch (error) {
       console.error('could not fetch workouts', error);
@@ -61,9 +61,10 @@ export default function Home() {
       <FlatList
         data={workouts}
         renderItem={({ item }) =>
-          <Card>
-            <Card.Title title={item} />
+          <Card style={{ marginBottom: 10, width: 300 }}>
+            <Card.Title title={item.date} />
             <Card.Content>
+              <Text>{item.exercises.map(ex => ex.name)}</Text>
             </Card.Content>
           </Card>
         }
