@@ -56,6 +56,7 @@ export default function Home() {
   // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran(?)
   useFocusEffect(useCallback(() => { fetchWorkouts() }, []));
 
+  // Tietojen näyttäminen: https://stackoverflow.com/questions/61242323/react-native-flatlist-how-to-loop-through-nested-object
   return (
     <View style={styles.container}>
       <FlatList
@@ -63,9 +64,14 @@ export default function Home() {
         renderItem={({ item }) =>
           <Card style={{ marginBottom: 10, width: 300 }}>
             <Card.Title title={item.date} />
-            <Card.Content>
-              <Text>{item.exercises.map(ex => ex.name)}</Text>
-            </Card.Content>
+            {item.exercises.map((e, i) => (
+              <Card.Content key={e.exercise_id}>
+                <Text variant="titleMedium">{e.name}</Text>
+                {e.sets.map((s, i) => (
+                  <Text key={s.set_entry_id}>{s.weight} kg, {s.reps} toistoa</Text>
+                ))}
+              </Card.Content>
+            ))}
           </Card>
         }
       />
