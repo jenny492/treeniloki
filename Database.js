@@ -15,9 +15,6 @@ export const initialize = async () => {
 const createTables = async () => {
     try {
         await db.execAsync(`
-            DROP TABLE IF EXISTS set_entry;
-            DROP TABLE IF EXISTS workout;
-            DROP TABLE IF EXISTS exercise;
 
             CREATE TABLE IF NOT EXISTS workout (
                 workout_id INTEGER PRIMARY KEY NOT NULL, 
@@ -40,13 +37,6 @@ const createTables = async () => {
                 FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
             );
 
-            INSERT INTO exercise (name, instruction) VALUES
-                ('Kyykky', ''),
-                ('Penkkipunnerrus', ''),
-                ('Maastaveto', ''),
-                ('Pystypunnerrus', ''),
-                ('Leuanveto', ''),
-                ('Kulmasoutu', '');
     `);
 
     } catch (error) {
@@ -58,11 +48,18 @@ export const createWorkout = async () => {
     try {
         await db.runAsync('INSERT INTO workout (date) VALUES (date(\'now\'))');
         const result = await db.getAllAsync('SELECT last_insert_rowid();'); // https://forum.xojo.com/t/sqlite-return-id-of-record-inserted/37896/3
-        console.log('Created workout with id', result);
         return result[0]['last_insert_rowid()'];
     } catch (error) {
         console.error('Could not create workout', error);
         return null;
+    }
+}
+
+export const createExercise = async (name) => {
+    try {
+        await db.runAsync('INSERT INTO exercise (name) VALUES (?)', name);
+    } catch (error) {
+        console.error('Could not create exercise', error);
     }
 }
 

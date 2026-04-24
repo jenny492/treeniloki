@@ -34,7 +34,7 @@ export default function NewExercise({ navigation }) {
 
                 setExercises(formatted);
             } catch (error) {
-                console.error('Virhe alustuksessa', error);
+                console.error('Initialization error', error);
             }
         };
 
@@ -47,7 +47,7 @@ export default function NewExercise({ navigation }) {
             setWorkoutId(newWorkoutId);
             return newWorkoutId;
         } catch (error) {
-            console.error('Virhe uuden treenin luonnissa', error);
+            console.error('Error creating new workout', error);
             return null;
         }
     };
