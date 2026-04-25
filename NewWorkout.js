@@ -117,12 +117,14 @@ export default function NewWorkout({ navigation }) {
                 setOpen={setOpen}
                 setValue={setExerciseValue}
                 setItems={setExercises}
+                listMode="MODAL"
+                modalTitle="Valitse liike"
+                searchable={false}
             />
 
             {exerciseValue && (
                 <View>
                     <View style={styles.setFields}>
-                        <Text>{exercises.find((ex) => ex.value === exerciseValue)?.label}</Text>
                         <TextInput
                             label="Paino"
                             value={weight}

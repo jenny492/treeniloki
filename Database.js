@@ -1,6 +1,7 @@
 // https://docs.expo.dev/versions/latest/sdk/sqlite/
 
 import * as SQLite from 'expo-sqlite';
+import { Alert } from 'react-native';
 
 export const db = SQLite.openDatabaseSync('treenilokidb');
 
@@ -57,9 +58,34 @@ export const createWorkout = async () => {
 
 export const createExercise = async (name) => {
     try {
+        const existingExercise = await getExerciseByName(name);
+
+        if (existingExercise) {
+            Alert.alert('Virhe', 'Harjoitus on jo olemassa');
+            return;
+        }
+
         await db.runAsync('INSERT INTO exercise (name) VALUES (?)', name);
     } catch (error) {
         console.error('Could not create exercise', error);
+    }
+}
+
+export const getExerciseByName = async (name) => {
+    try {
+        const result = await db.getFirstAsync('SELECT * FROM exercise WHERE name = ?', name);
+        return result;
+    } catch (error) {
+        console.error('Could not fetch exercise by name', error);
+        return null;
+    }
+}
+
+export const deleteExercise = async (exerciseId) => {
+    try {
+        await db.runAsync('DELETE FROM exercise WHERE exercise_id = ?', Number(exerciseId));
+    } catch (error) {
+        console.error('Could not delete exercise', error);
     }
 }
 
@@ -67,11 +93,11 @@ export const getAllExercises = async () => {
     try {
         const result = await db.getAllAsync('SELECT * FROM exercise');
         const formatted = result
-                .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-                .map((item) => ({
-                    label: item.name,
-                    value: item.exercise_id
-                }));
+            .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+            .map((item) => ({
+                label: item.name,
+                value: item.exercise_id
+            }));
         return formatted;
     } catch (error) {
         console.error('Could not fetch exercises', error);

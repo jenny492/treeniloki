@@ -59,6 +59,7 @@ export default function Home() {
   // Tietojen näyttäminen: https://stackoverflow.com/questions/61242323/react-native-flatlist-how-to-loop-through-nested-object
   return (
     <View style={styles.container}>
+      <Text variant='displayMedium'>Treeniloki</Text>
       <FlatList
         data={workouts}
         renderItem={({ item }) =>
@@ -75,10 +76,6 @@ export default function Home() {
           </Card>
         }
       />
-      <Text>Tässä näytetään edelliset harjoitukset listana</Text>
-      <Button mode="contained" onPress={fetchWorkouts}>
-        Päivitä harjoitukset
-      </Button>
     </View>
   );
 }
