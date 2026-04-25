@@ -89,6 +89,14 @@ export const deleteExercise = async (exerciseId) => {
     }
 }
 
+export const editExercise = async (exerciseId, editedName) => {
+    try {
+        await db.runAsync('UPDATE exercise SET name = ? WHERE exercise_id = ?', editedName, Number(exerciseId));
+    } catch (error) {
+        console.error('Could not edit exercise', error);
+    }
+}
+
 export const getAllExercises = async () => {
     try {
         const result = await db.getAllAsync('SELECT * FROM exercise');

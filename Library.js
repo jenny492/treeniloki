@@ -1,15 +1,18 @@
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
-import { createExercise, deleteExercise } from './Database';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { getAllExercises } from './Database';
+// Modal ja modalin tyyli: https://reactnative.dev/docs/modal
+
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { Alert, Modal, StyleSheet, View, Pressable } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { Button, Text, TextInput } from 'react-native-paper';
+import { createExercise, deleteExercise, getAllExercises, editExercise } from './Database';
+
 
 export default function Library() {
 
   const [open, setOpen] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [input, setInput] = useState('')
   const [exerciseValue, setExerciseValue] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [exercise, setExercise] = useState('');
@@ -23,14 +26,31 @@ export default function Library() {
     }
   };
 
+  // TODO lisää kysely poistetaanko varmasti ja vastaukset kyllä ja ei
   const handleDeleteExercise = async () => {
-    try {     
+    try {
       await deleteExercise(exerciseValue);
       setExerciseValue(null);
     } catch (error) {
       console.error('Error deleting exercise', error);
     }
   };
+
+  const handleEditExercise = async () => {
+    try {
+      const editedExerciseName = input;
+      if (!editedExerciseName) {
+        Alert.alert('Liikettä ei muokattu.');
+        return;
+      }
+      editExercise(exerciseValue, editedExerciseName);
+      setModalVisible(false);
+
+    } catch (error) {
+      console.error('Error editing exercise', error);
+    }
+  };
+
 
   const getExercises = async () => {
     try {
@@ -49,7 +69,7 @@ export default function Library() {
 
   return (
     <View style={styles.container}>
-      <Text variant='displaySmall'>Lisää uusi liike</Text>
+      <Text variant='titleLarge'>Lisää uusi liike</Text>
       <TextInput
         style={{ flexDirection: 'row' }}
         label="Harjoituksen nimi"
@@ -58,7 +78,7 @@ export default function Library() {
       />
       <Button mode='contained' onPress={handleCreateExercise}>Lisää harjoitus</Button>
 
-      <Text variant='displaySmall'>Poista liike</Text>
+      <Text variant='titleLarge'>Poista tai muokkaa</Text>
       <DropDownPicker
         placeholder='Valitse liike'
         open={open}
@@ -72,7 +92,23 @@ export default function Library() {
         searchable={false}
       />
 
-      <Button mode='contained' onPress={handleDeleteExercise}>Poista harjoitus</Button>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TextInput style={styles.textInput} value={input} onChangeText={setInput} />
+            <Button mode="contained" onPress={handleEditExercise}>
+              Tallenna
+            </Button>
+          </View>
+        </View>
+      </Modal>
+
+      <Button mode='contained' onPress={handleDeleteExercise}>Poista</Button>
+      <Button mode='contained' onPress={() => setModalVisible(true)}>Muokkaa</Button>
     </View>
   );
 }
@@ -83,5 +119,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  textInput: {
+    width: '100%',
+    marginBottom: 10,
   },
 });

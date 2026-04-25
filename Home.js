@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
-import { getAllData } from './Database';
 import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Card, Text } from 'react-native-paper';
+import { getAllData } from './Database';
 
 
 export default function Home() {
