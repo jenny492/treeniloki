@@ -66,7 +66,13 @@ export const createExercise = async (name) => {
 export const getAllExercises = async () => {
     try {
         const result = await db.getAllAsync('SELECT * FROM exercise');
-        return result;
+        const formatted = result
+                .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+                .map((item) => ({
+                    label: item.name,
+                    value: item.exercise_id
+                }));
+        return formatted;
     } catch (error) {
         console.error('Could not fetch exercises', error);
         return [];

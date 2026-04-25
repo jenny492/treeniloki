@@ -8,7 +8,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { initialize, getAllExercises, createWorkout, saveReps, getSetsForExercise } from './Database';
 import { useFocusEffect } from '@react-navigation/native';
 
-export default function NewExercise({ navigation }) {
+export default function NewWorkout({ navigation }) {
 
     const [open, setOpen] = useState(false);
     const [exerciseValue, setExerciseValue] = useState(null);
@@ -24,15 +24,7 @@ export default function NewExercise({ navigation }) {
         const init = async () => {
             try {
                 await initialize();
-                const allExercises = await getAllExercises();
-                const formatted = allExercises
-                    .sort((a, b) => a.name.localeCompare(b.name)) // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-                    .map((item) => ({
-                        label: item.name,
-                        value: item.exercise_id
-                    }));
-
-                setExercises(formatted);
+                await getExercises();
             } catch (error) {
                 console.error('Initialization error', error);
             }
@@ -40,6 +32,15 @@ export default function NewExercise({ navigation }) {
 
         init();
     }, []);
+
+    const getExercises = async () => {
+        try {
+            const allExercises = await getAllExercises();
+            setExercises(allExercises);
+        } catch (error) {
+            console.error('Error fetching exercises', error);
+        }
+    };
 
     const createNewWorkout = async () => {
         try {
@@ -61,7 +62,7 @@ export default function NewExercise({ navigation }) {
         try {
             let currentWorkoutId = workoutId;
             if (!currentWorkoutId) {
-                currentWorkoutId =await createNewWorkout();
+                currentWorkoutId = await createNewWorkout();
             }
             await saveReps(currentWorkoutId, exerciseValue, weight, reps);
             setCurrentSet((prev) => [
@@ -71,7 +72,6 @@ export default function NewExercise({ navigation }) {
         } catch (error) {
             console.error('Could not save reps', error);
         }
-        console.log('Workout ID:', currentWorkoutId);
     };
 
     const handleAddExercise = async () => {
@@ -98,7 +98,13 @@ export default function NewExercise({ navigation }) {
         setCurrentSet([]);
         setSavedExercises([]);
         navigation.navigate('Koti');
-    }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            getExercises();
+        }, [])
+    );
 
     return (
         <View style={styles.container}>

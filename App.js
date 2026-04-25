@@ -7,7 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './Home';
 import Library from './Library';
 import AddExercise from './AddExercise';
-import NewExercise from './NewExercise';
+import NewWorkout from './NewWorkout';
 import { Icon } from 'react-native-paper';
 import { PaperProvider } from 'react-native-paper';
 import { useEffect } from 'react';
@@ -46,7 +46,7 @@ export default function App() {
             }
           })}>
           <Tab.Screen name="Koti" component={Home} />
-          <Tab.Screen name="Lisää harjoitus" component={NewExercise} />
+          <Tab.Screen name="Lisää harjoitus" component={NewWorkout} />
           <Tab.Screen name="Liikepankki" component={Library} />
         </Tab.Navigator>
       </NavigationContainer>
