@@ -56,6 +56,14 @@ export const createWorkout = async () => {
     }
 }
 
+export const deleteWorkout = async (workoutId) => {
+    try {
+        await db.runAsync('DELETE FROM workout WHERE workout_id = ?', Number(workoutId));
+    } catch (error) {
+        console.error('Could not delete workout', error);
+    }
+}
+
 export const createExercise = async (name) => {
     try {
         const existingExercise = await getExerciseByName(name);

@@ -19,9 +19,14 @@ export default function Library() {
 
   const handleCreateExercise = async () => {
     try {
+      if (!exercise) {
+        Alert.alert('Anna liikkeelle nimi');
+        return;
+      }
       await createExercise(exercise);
       setExercise('');
       await updateExercises();
+      Alert.alert('Uusi liike lisätty')
     } catch (error) {
       console.error('Error creating new exercise', error);
     }
@@ -61,6 +66,7 @@ export default function Library() {
       await editExercise(exerciseValue, editedExerciseName);
       setInput('');
       setModalVisible(false);
+      Alert.alert('Liike muokattu');
       await updateExercises();
     } catch (error) {
       console.error('Error editing exercise', error);
@@ -108,6 +114,7 @@ export default function Library() {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
+            <Text>Anna uusi nimi liikkeelle</Text>
             <TextInput style={styles.textInput} value={input} onChangeText={setInput} />
             <Button mode="contained" onPress={() => setModalVisible(false)}>
               Peruuta
@@ -120,7 +127,15 @@ export default function Library() {
       </Modal>
 
       <Button mode='contained' onPress={handleDeleteExercise}>Poista</Button>
-      <Button mode='contained' onPress={() => setModalVisible(true)}>Muokkaa</Button>
+      <Button mode='contained' onPress={() => {
+        if (!exerciseValue) {
+          Alert.alert('Valitse liike');
+          return;
+        }
+
+        const selected = exercises.find((item) => item.value === exerciseValue);
+        setInput(selected?.label);
+        setModalVisible(true)}}>Muokkaa</Button>
     </View>
   );
 }

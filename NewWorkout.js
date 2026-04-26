@@ -5,7 +5,7 @@ import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, IconButton, TextInput } from 'react-native-paper';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useEffect, useState, useCallback } from 'react';
-import { initialize, getAllExercises, createWorkout, saveReps, getSetsForExercise } from './Database';
+import { initialize, getAllExercises, createWorkout, saveReps, getSetsForExercise, deleteWorkout } from './Database';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function NewWorkout({ navigation }) {
@@ -24,7 +24,7 @@ export default function NewWorkout({ navigation }) {
         const init = async () => {
             try {
                 await initialize();
-                await getExercises();
+                await updateExercises();
             } catch (error) {
                 console.error('Initialization error', error);
             }
@@ -33,7 +33,7 @@ export default function NewWorkout({ navigation }) {
         init();
     }, []);
 
-    const getExercises = async () => {
+    const updateExercises = async () => {
         try {
             const allExercises = await getAllExercises();
             setExercises(allExercises);
@@ -53,6 +53,36 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
+    const handleCancelWorkout = () => {
+        Alert.alert('Peruuta', 'Haluatko varmasti peruuttaa treenin? Tallentamattomat tiedot häviävät.', [
+            {
+                text: 'Kyllä',
+                onPress: () => {
+                    const id = workoutId;
+                    if (id) {
+                        handleDeleteWorkout();
+                    }
+                    setWorkoutId(null);
+                    setCurrentSet([]);
+                    setSavedExercises([]);
+                    navigation.navigate('Koti');
+                }
+            },
+            {
+                text: 'Ei',
+                onPress: () => Alert.alert('Ei peruutettu'),
+            }
+        ]);
+    };
+
+    const handleDeleteWorkout = async () => {
+        try {
+            await deleteWorkout(workoutId);
+        }
+        catch (error) {
+            console.error('Error deleting workout', error);
+        }
+    };
 
     const handleAddReps = async () => {
         if (!exerciseValue) {
@@ -72,6 +102,10 @@ export default function NewWorkout({ navigation }) {
         } catch (error) {
             console.error('Could not save reps', error);
         }
+    };
+
+    const deleteRep = () => {
+        // toteuta poisto
     };
 
     const handleAddExercise = async () => {
@@ -94,15 +128,46 @@ export default function NewWorkout({ navigation }) {
     };
 
     const handleSaveExercise = () => {
-        setWorkoutId(null);
-        setCurrentSet([]);
-        setSavedExercises([]);
-        navigation.navigate('Koti');
+        if (!workoutId) {
+            Alert.alert('Ei tallennettavaa');
+            return;
+        }
+        Alert.alert('Tallenna', 'Treeni valmis?', [
+            {
+                text: 'Kyllä',
+                onPress: () => {
+                    setWorkoutId(null);
+                    setCurrentSet([]);
+                    setSavedExercises([]);
+                    navigation.navigate('Koti');
+                },
+            },
+            {
+                text: 'Ei',
+                onPress: () => Alert.alert('Ei tallennettu'),
+            }
+        ]);
+        ;
+    };
+
+    const deleteExercise = () => {
+        Alert.alert('Poista', 'Haluatko varmasti poistaa liikkeen?', [
+            {
+                text: 'Kyllä',
+                onPress: () => {
+                    // toteuta poisto
+                }
+            },
+            {
+                text: 'Ei',
+                onPress: () => Alert.alert('Ei poistettu'),
+            }
+        ]);
     };
 
     useFocusEffect(
         useCallback(() => {
-            getExercises();
+            updateExercises();
         }, [])
     );
 
@@ -146,7 +211,10 @@ export default function NewWorkout({ navigation }) {
                     <FlatList
                         data={currentSet}
                         renderItem={({ item }) =>
-                            <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                                <IconButton icon='delete-outline' onPress={deleteRep} />
+                            </View>
                         }
                     />
 
@@ -156,6 +224,7 @@ export default function NewWorkout({ navigation }) {
                 </View>
             )}
 
+            <Text>Tehdyt liikkeet</Text>
             <FlatList
                 data={savedExercises}
                 renderItem={({ item }) =>
@@ -168,7 +237,7 @@ export default function NewWorkout({ navigation }) {
 
                         </Card.Content>
                         <Card.Actions>
-                            <IconButton icon="delete" />
+                            <IconButton icon="delete" onPress={deleteExercise} />
                         </Card.Actions>
                     </Card>
                 }
@@ -176,6 +245,9 @@ export default function NewWorkout({ navigation }) {
 
             <Button mode="contained" onPress={handleSaveExercise}>
                 Tallenna harjoitus
+            </Button>
+            <Button onPress={handleCancelWorkout}>
+                Peruuta
             </Button>
         </View>
     );
