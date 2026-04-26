@@ -1,8 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Card, Text } from 'react-native-paper';
-import { getAllData } from './Database';
+import { Card, Text, IconButton } from 'react-native-paper';
+import { getAllData, deleteWorkout } from './Database';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function Home() {
@@ -12,7 +13,6 @@ export default function Home() {
   const fetchWorkouts = async () => {
     try {
       const fetchedWorkouts = await getAllData();
-      console.log('fetched workouts', fetchedWorkouts);
 
       // https://blog.logrocket.com/guide-object-groupby-alternative-array-reduce/
       // https://medium.com/@finnkumar6/array-grouping-in-javascript-a-quick-and-efficient-guide-771a974fa4d4
@@ -53,30 +53,45 @@ export default function Home() {
     }
   }
 
+  const handleDeleteWorkout = async (workoutId) => {
+    console.log(workoutId);
+    try {
+      await deleteWorkout(workoutId);
+    } catch (error) {
+      console.error('could not delete workout', error);
+    }
+    fetchWorkouts();
+  }
+
   // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran(?)
   useFocusEffect(useCallback(() => { fetchWorkouts() }, []));
 
   // Tietojen näyttäminen: https://stackoverflow.com/questions/61242323/react-native-flatlist-how-to-loop-through-nested-object
   return (
-    <View style={styles.container}>
-      <Text variant='displayMedium'>Treeniloki</Text>
-      <FlatList
-        data={workouts}
-        renderItem={({ item }) =>
-          <Card style={{ marginBottom: 10, width: 300 }}>
-            <Card.Title title={item.date} />
-            {item.exercises.map((e, i) => (
-              <Card.Content key={e.exercise_id}>
-                <Text variant="titleMedium">{e.name}</Text>
-                {e.sets.map((s, i) => (
-                  <Text key={s.set_entry_id}>{s.weight} kg, {s.reps} toistoa</Text>
-                ))}
-              </Card.Content>
-            ))}
-          </Card>
-        }
-      />
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <Text variant='displayMedium'>Treeniloki</Text>
+        <FlatList
+          data={workouts}
+          renderItem={({ item }) =>
+            <Card style={{ marginBottom: 10, width: 300 }}>
+              <Card.Title title={item.date} />
+              {item.exercises.map((e, i) => (
+                <Card.Content key={e.exercise_id}>
+                  <Text variant="titleMedium">{e.name}</Text>
+                  {e.sets.map((s, i) => (
+                    <Text key={s.set_entry_id}>{s.weight} kg, {s.reps} toistoa</Text>
+                  ))}
+                </Card.Content>
+              ))}
+              <Card.Actions>
+                <IconButton icon="delete" onPress={() => handleDeleteWorkout(item.workout_id)} />
+              </Card.Actions>
+            </Card>
+          }
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

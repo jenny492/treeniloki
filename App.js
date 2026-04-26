@@ -1,31 +1,29 @@
 // https://reactnavigation.org/docs/customizing-tabbar/
 // https://stackoverflow.com/questions/71742003/how-to-use-stack-and-tab-navigation-at-same-time
 
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { Icon, PaperProvider } from 'react-native-paper';
 import Home from './Home';
 import Library from './Library';
-import AddExercise from './AddExercise';
 import NewWorkout from './NewWorkout';
-import { Icon } from 'react-native-paper';
-import { PaperProvider } from 'react-native-paper';
-import { useEffect } from 'react';
 import { initialize } from './Database';
+import { useEffect } from 'react';
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
 
 export default function App() {
 
-  /* const ExerciseStack = () => {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen name="Lisää harjoitus" component={AddExercise} />
-        <Stack.Screen name="Uusi" component={NewExercise} /> 
-      </Stack.Navigator>
-    );
-  } */
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initialize();
+      } catch (error) {
+        console.error('Initialization error', error);
+      }
+    };
+    init();
+  }, []);
 
   return (
     <PaperProvider>

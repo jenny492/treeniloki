@@ -97,6 +97,14 @@ export const deleteExercise = async (exerciseId) => {
     }
 }
 
+export const deleteExerciseFromWorkout = async (exerciseId, workoutId) => {
+    try {
+        await db.runAsync('DELETE FROM set_entry WHERE exercise_id = ? AND workout_id = ?', Number(exerciseId), Number(workoutId));
+    } catch (error) {
+        console.error('Could not delete exercise from workout', error);
+    }
+};
+
 export const editExercise = async (exerciseId, editedName) => {
     try {
         await db.runAsync('UPDATE exercise SET name = ? WHERE exercise_id = ?', editedName, Number(exerciseId));
@@ -145,8 +153,11 @@ export const getAllData = async () => {
 export const saveReps = async (workoutId, exerciseId, weight, reps) => {
     try {
         await db.runAsync('INSERT INTO set_entry (workout_id, exercise_id, weight, reps) VALUES (?, ?, ?, ?)', Number(workoutId), Number(exerciseId), Number(weight), Number(reps));
+        const result = await db.getAllAsync('SELECT last_insert_rowid();'); // https://forum.xojo.com/t/sqlite-return-id-of-record-inserted/37896/3
+        return result[0]['last_insert_rowid()'];
     } catch (error) {
         console.error('Could not save reps', error);
+        return null;
     }
 }
 
@@ -157,6 +168,14 @@ export const getSetsByWorkoutId = async (workoutId) => {
     } catch (error) {
         console.error('Could not fetch sets for workout', error);
         return [];
+    }
+}
+
+export const deleteSetEntry = async (setEntryId) => {
+    try {
+        await db.runAsync('DELETE FROM set_entry WHERE set_entry_id = ?', Number(setEntryId));
+    } catch (error) {
+        console.error('Could not delete set', error);
     }
 }
 
