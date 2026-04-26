@@ -1,6 +1,6 @@
 // Modal ja modalin tyyli: https://reactnative.dev/docs/modal
+// Alert https://reactnative.dev/docs/alert
 
-import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { Alert, Modal, StyleSheet, View, Pressable } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -21,20 +21,35 @@ export default function Library() {
     try {
       await createExercise(exercise);
       setExercise('');
+      await updateExercises();
     } catch (error) {
       console.error('Error creating new exercise', error);
     }
   };
 
-  // TODO lisää kysely poistetaanko varmasti ja vastaukset kyllä ja ei
   const handleDeleteExercise = async () => {
+      Alert.alert('Poista', 'Haluatko varmasti poistaa liikkeen?', [
+        {
+          text: 'Kyllä',
+          onPress: () => delExercise(),
+        },
+        {
+          text: 'Peruuta',
+          onPress: () => Alert.alert('Liikettä ei poistettu'),
+        }
+      ]);
+  };
+
+  const delExercise = async () => {
     try {
       await deleteExercise(exerciseValue);
       setExerciseValue(null);
+      await updateExercises();
+      Alert.alert('Liike poistettu');
     } catch (error) {
       console.error('Error deleting exercise', error);
     }
-  };
+  }
 
   const handleEditExercise = async () => {
     try {
@@ -43,16 +58,16 @@ export default function Library() {
         Alert.alert('Liikettä ei muokattu.');
         return;
       }
-      editExercise(exerciseValue, editedExerciseName);
+      await editExercise(exerciseValue, editedExerciseName);
+      setInput('');
       setModalVisible(false);
-
+      await updateExercises();
     } catch (error) {
       console.error('Error editing exercise', error);
     }
   };
 
-
-  const getExercises = async () => {
+  const updateExercises = async () => {
     try {
       const allExercises = await getAllExercises();
       setExercises(allExercises);
@@ -61,22 +76,16 @@ export default function Library() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      getExercises();
-    }, [])
-  );
-
   return (
     <View style={styles.container}>
-      <Text variant='titleLarge'>Lisää uusi liike</Text>
+      <Text variant='titleLarge'>Lisää uusi liike liikepankkiin</Text>
       <TextInput
         style={{ flexDirection: 'row' }}
-        label="Harjoituksen nimi"
+        label="Liikkeen nimi"
         value={exercise}
         onChangeText={setExercise}
       />
-      <Button mode='contained' onPress={handleCreateExercise}>Lisää harjoitus</Button>
+      <Button mode='contained' onPress={handleCreateExercise}>Lisää liike</Button>
 
       <Text variant='titleLarge'>Poista tai muokkaa</Text>
       <DropDownPicker
@@ -100,6 +109,9 @@ export default function Library() {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <TextInput style={styles.textInput} value={input} onChangeText={setInput} />
+            <Button mode="contained" onPress={() => setModalVisible(false)}>
+              Peruuta
+            </Button>
             <Button mode="contained" onPress={handleEditExercise}>
               Tallenna
             </Button>

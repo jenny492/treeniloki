@@ -61,7 +61,7 @@ export const createExercise = async (name) => {
         const existingExercise = await getExerciseByName(name);
 
         if (existingExercise) {
-            Alert.alert('Virhe', 'Harjoitus on jo olemassa');
+            Alert.alert('Virhe', 'Liike on jo olemassa');
             return;
         }
 
