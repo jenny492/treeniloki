@@ -2,13 +2,13 @@
 // Alert https://reactnative.dev/docs/alert
 // Svg https://github.com/software-mansion/react-native-svg/blob/main/USAGE.md
 
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, StyleSheet, View, Pressable, FlatList } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, Modal, StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Button, Text, TextInput, Card } from 'react-native-paper';
-import { createExercise, deleteExercise, getAllExercises, editExercise } from './Database';
+import { Button, Card, Text, TextInput } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
+import { createExercise, deleteExercise, editExercise, getAllExercises } from './Database';
 
 export default function Library() {
 
@@ -57,17 +57,15 @@ export default function Library() {
     axios.request(config)
       .then((response) => {
         setExerciseData(response.data);
-        console.log(response);
       })
       .catch((error) => {
-        console.log(error);
+        console.error('Error fetching data from Workout API', error);
       })
       .finally(() => setLoading(false));
 
   };
 
   const handleFetchIllustration = (imageId) => {
-    console.log(imageId);
     const axios = require('axios');
     const apiKey = process.env.EXPO_PUBLIC_API_KEY;
 
@@ -89,10 +87,9 @@ export default function Library() {
           .replace(/<\?xml.*?\?>/g, '')
           .replace(/<!DOCTYPE.*?>/g, '');
         setIllustration(cleanSvg);
-        console.log(cleanSvg);
       })
       .catch((error) => {
-        console.log(error);
+        console.error('Error fetching illustration', error);
       })
       .finally(() => setIlModalVisible(true));
   }
@@ -120,7 +117,6 @@ export default function Library() {
       },
       {
         text: 'Peruuta',
-        onPress: () => Alert.alert('Liikettä ei poistettu'),
       }
     ]);
   };
@@ -285,8 +281,8 @@ export default function Library() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
+    backgroundColor: '#ffffff'
   },
   inputAndButton: {
     width: '100%',

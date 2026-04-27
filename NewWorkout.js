@@ -7,8 +7,7 @@ import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Button, Card, IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { createWorkout, deleteWorkout, getAllExercises, saveReps, deleteSetEntry, deleteExerciseFromWorkout } from './Database';
-
+import { createWorkout, deleteExerciseFromWorkout, deleteSetEntry, deleteWorkout, getAllExercises, saveReps } from './Database';
 
 export default function NewWorkout({ navigation }) {
 
@@ -31,7 +30,7 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
-    const createNewWorkout = async () => {
+    const handleCreateNewWorkout = async () => {
         try {
             const newWorkoutId = await createWorkout();
             setWorkoutId(newWorkoutId);
@@ -59,7 +58,6 @@ export default function NewWorkout({ navigation }) {
             },
             {
                 text: 'Ei',
-                onPress: () => Alert.alert('Ei peruutettu'),
             }
         ]);
     };
@@ -73,7 +71,16 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
-    // settien lisäyksessä tarkistukset, jonka jälkeen ohjaa varsinaiseen lisäykseen
+    const handleDeleteRep = async (setEntryId) => {
+        try {
+            await deleteSetEntry(setEntryId);
+            setCurrentSet(currentSet.filter(item => item.setEntryId !== setEntryId)); // https://stackoverflow.com/questions/67979861/how-to-delete-an-element-from-array-in-react
+        } catch (error) {
+            console.error('Could not delete reps');
+        }
+    };
+
+    // settien lisäyksessä ensin tarkistukset, jonka jälkeen ohjaa varsinaiseen lisäykseen
     const addReps = async () => {
         if (!exerciseValue) {
             Alert.alert('Valitse liike');
@@ -91,32 +98,20 @@ export default function NewWorkout({ navigation }) {
         try {
             let currentWorkoutId = workoutId;
             if (!currentWorkoutId) {
-                currentWorkoutId = await createNewWorkout();
+                currentWorkoutId = await handleCreateNewWorkout();
             }
             // tallentaa setEntryn tietokantaan ja palauttaa samalla setEntryn id:n
             const setEntryId = await saveReps(currentWorkoutId, exerciseValue, weight, reps);
             setCurrentSet((prev) => [
                 ...prev,
                 { setEntryId: setEntryId, weight: weight, reps: reps }
-
             ]);
-            console.log('set entry id', setEntryId);
         } catch (error) {
             console.error('Could not save reps', error);
         }
     };
 
-    const deleteRep = async (setEntryId) => {
-        console.log('set entry in deleterep', setEntryId)
-        try {
-            await deleteSetEntry(setEntryId);
-            setCurrentSet(currentSet.filter(item => item.setEntryId !== setEntryId)); // https://stackoverflow.com/questions/67979861/how-to-delete-an-element-from-array-in-react
-        } catch (error) {
-            console.error('Could not delete reps');
-        }
-    };
-
-    
+    // ennen harjoituksen tallennusta tarkistetaan onko sille tallennettu yhtään set_entryä    
     const handleAddExercise = async () => {
         if (!weight && !reps) {
             await handleAddReps();
@@ -166,8 +161,6 @@ export default function NewWorkout({ navigation }) {
             console.error('Could not delete exercise', error);
         }
     };
-
-
 
     useFocusEffect(
         useCallback(() => {
@@ -224,7 +217,7 @@ export default function NewWorkout({ navigation }) {
                                     <Text variant="bodyLarge">
                                         {item.weight} kg, {item.reps} toistoa
                                     </Text>
-                                    <IconButton icon='delete-outline' onPress={() => deleteRep(item.setEntryId)} />
+                                    <IconButton icon='delete-outline' onPress={() => handleDeleteRep(item.setEntryId)} />
                                 </View>
                             }
                         />
@@ -273,9 +266,9 @@ export default function NewWorkout({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
         justifyContent: 'space-between',
         padding: 20,
+        backgroundColor: '#ffffff'
     },
     middleAddExercise: {
         flex: 1,

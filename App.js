@@ -3,12 +3,12 @@
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme as TabDefaultTheme } from '@react-navigation/native';
-import { Icon, BottomNavigation, MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
+import { useEffect } from 'react';
+import { MD3LightTheme as DefaultTheme, Icon, PaperProvider } from 'react-native-paper';
+import { initialize } from './Database';
 import Home from './Home';
 import Library from './Library';
 import NewWorkout from './NewWorkout';
-import { initialize } from './Database';
-import { useEffect } from 'react';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,17 +16,8 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: 'tomato',
-    secondary: 'yellow',    
-  },
-};
-
-const tabTheme = {
-   ...TabDefaultTheme,
-  colors: {
-    ...TabDefaultTheme.colors,
-    primary: 'tomato',
-    secondary: 'yellow',    
+    primary: '#1F2937', // buttonit yms
+    surfaceVariant: '#f3f0f5', // textinputien tausta
   },
 };
 
@@ -45,12 +36,15 @@ export default function App() {
 
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer theme={tabTheme}>
-        
+      <NavigationContainer>
+
         <Tab.Navigator
           screenOptions={({ route }) => ({
             tabBarInactiveTintColor: 'gray',
-            tabBarActiveTintColor: 'tomato',
+            tabBarActiveTintColor: '#C08B5C',
+            headerStyle: {
+              backgroundColor: '#e9e5eb',
+            },
             tabBarIcon: ({ color }) => {
               let iconName;
 
@@ -65,9 +59,9 @@ export default function App() {
             }
           })}>
 
-          <Tab.Screen name="Home" component={Home} options={{title: 'Treeniloki'}} />
-          <Tab.Screen name="NewWorkout" component={NewWorkout} options={{title: 'Uusi treeni'}} />
-          <Tab.Screen name="Library" component={Library} options={{title: 'Liikepankki'}} />
+          <Tab.Screen name="Home" component={Home} options={{ title: 'Treeniloki' }} />
+          <Tab.Screen name="NewWorkout" component={NewWorkout} options={{ title: 'Uusi treeni' }} />
+          <Tab.Screen name="Library" component={Library} options={{ title: 'Liikepankki' }} />
 
         </Tab.Navigator>
       </NavigationContainer>

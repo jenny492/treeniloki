@@ -1,10 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Card, Text, IconButton } from 'react-native-paper';
-import { getAllData, deleteWorkout } from './Database';
+import { Alert, FlatList, StyleSheet } from 'react-native';
+import { Card, IconButton, Text } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-
+import { deleteWorkout, getAllData } from './Database';
 
 export default function Home() {
 
@@ -53,7 +52,24 @@ export default function Home() {
     }
   }
 
-  const handleDeleteWorkout = async (workoutId) => {
+  const handleDeleteWorkout = (workoutId) => {
+    Alert.alert('Poista', 'Haluatko varmasti poistaa treenin?', [
+      {
+        text: 'Kyllä',
+        onPress: () => {
+          const id = workoutId;
+          if (id) {
+            delWorkout(id);
+          }
+        }
+      },
+      {
+        text: 'Ei',
+      }
+    ]);
+  };
+
+  const delWorkout = async (workoutId) => {
     try {
       await deleteWorkout(workoutId);
     } catch (error) {
@@ -61,7 +77,6 @@ export default function Home() {
     }
     fetchWorkouts();
   }
-
   // https://stackoverflow.com/questions/68472573/react-native-if-else-condition-in-array-map
   const setRow = (set) => {
     if (!set.weight && !set.reps) {
@@ -119,8 +134,8 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: '#ffffff'
   },
 });
