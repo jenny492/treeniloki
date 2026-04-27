@@ -3,11 +3,12 @@
 
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Button, Card, IconButton, TextInput } from 'react-native-paper';
+import { Button, Card, IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createWorkout, deleteWorkout, getAllExercises, saveReps, deleteSetEntry, deleteExerciseFromWorkout } from './Database';
+
 
 export default function NewWorkout({ navigation }) {
 
@@ -53,7 +54,7 @@ export default function NewWorkout({ navigation }) {
                     setWorkoutId(null);
                     setCurrentSet([]);
                     setSavedExercises([]);
-                    navigation.navigate('Koti');
+                    navigation.navigate('Home');
                 }
             },
             {
@@ -72,11 +73,21 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
-    const handleAddReps = async () => {
+    // settien lisäyksessä tarkistukset, jonka jälkeen ohjaa varsinaiseen lisäykseen
+    const addReps = async () => {
         if (!exerciseValue) {
             Alert.alert('Valitse liike');
             return;
         }
+        else if (!weight && !reps) {
+            Alert.alert('Lisää painot tai toistot');
+            return;
+        }
+        handleAddReps();
+    };
+
+    // varsinainen settien lisäys
+    const handleAddReps = async () => {
         try {
             let currentWorkoutId = workoutId;
             if (!currentWorkoutId) {
@@ -105,7 +116,11 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
-    const handleAddExercise = () => {
+    
+    const handleAddExercise = async () => {
+        if (!weight && !reps) {
+            await handleAddReps();
+        }
         setSavedExercises(prev => [
             ...prev,
             {
@@ -132,7 +147,7 @@ export default function NewWorkout({ navigation }) {
                     setWorkoutId(null);
                     setCurrentSet([]);
                     setSavedExercises([]);
-                    navigation.navigate('Koti');
+                    navigation.navigate('Home');
                 },
             },
             {
@@ -164,36 +179,40 @@ export default function NewWorkout({ navigation }) {
         <SafeAreaProvider>
             <SafeAreaView style={styles.container}>
 
-                <DropDownPicker
-                    placeholder='Valitse liike'
-                    open={open}
-                    value={exerciseValue}
-                    items={exercises}
-                    setOpen={setOpen}
-                    setValue={setExerciseValue}
-                    setItems={setExercises}
-                    listMode="MODAL"
-                    modalTitle="Valitse liike"
-                    searchable={false}
-                />
+                <View style={styles.topDropdown}>
+                    <DropDownPicker
+                        placeholder='Valitse liike'
+                        open={open}
+                        value={exerciseValue}
+                        items={exercises}
+                        setOpen={setOpen}
+                        setValue={setExerciseValue}
+                        setItems={setExercises}
+                        listMode="MODAL"
+                        modalTitle="Valitse liike"
+                        searchable={false}
+                    />
+                </View>
 
                 {exerciseValue && (
-                    <View style={{ flex: 1 }}>
+                    <View style={styles.middleAddExercise}>
                         <View style={styles.setFields}>
                             <TextInput
                                 label="Paino"
                                 value={weight}
                                 onChangeText={setWeight}
                                 keyboardType='numeric'
+                                style={styles.setField}
                             />
                             <TextInput
                                 label="Toistot"
                                 value={reps}
                                 onChangeText={setReps}
                                 keyboardType='numeric'
+                                style={styles.setField}
                             />
 
-                            <Button mode="contained" onPress={handleAddReps}>
+                            <Button mode="contained" onPress={addReps}>
                                 Tallenna
                             </Button>
                         </View>
@@ -201,13 +220,14 @@ export default function NewWorkout({ navigation }) {
                         <FlatList
                             data={currentSet}
                             renderItem={({ item }) =>
-                                <View style={{ flexDirection: 'row' }}>
-                                    <Text>{item.weight} kg, {item.reps} toistoa</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text variant="bodyLarge">
+                                        {item.weight} kg, {item.reps} toistoa
+                                    </Text>
                                     <IconButton icon='delete-outline' onPress={() => deleteRep(item.setEntryId)} />
                                 </View>
                             }
                         />
-
                         <Button mode="contained" onPress={handleAddExercise}>
                             Seuraava liike
                         </Button>
@@ -215,8 +235,8 @@ export default function NewWorkout({ navigation }) {
                 )}
 
                 {!exerciseValue && (
-                    <View style={{ flex: 1 }}>
-                        <Text>Tehdyt liikkeet</Text>
+                    <View style={styles.bottom}>
+                        <Text variant='titleMedium'>Tehdyt liikkeet</Text>
                         <FlatList
                             data={savedExercises}
                             renderItem={({ item }) =>
@@ -224,7 +244,9 @@ export default function NewWorkout({ navigation }) {
                                     <Card.Title title={item.name} />
                                     <Card.Content>
                                         {item.sets.map((setItem, index) => (
-                                            <Text key={index}>{setItem.weight} kg, {setItem.reps} toistoa</Text>
+                                            <Text variant="bodyMedium" key={index}>
+                                                {setItem.weight} kg, {setItem.reps} toistoa
+                                            </Text>
                                         ))}
 
                                     </Card.Content>
@@ -234,9 +256,8 @@ export default function NewWorkout({ navigation }) {
                                 </Card>
                             }
                         />
-
                         <Button mode="contained" onPress={handleSaveExercise}>
-                            Tallenna harjoitus
+                            Tallenna treeni
                         </Button>
                         <Button onPress={handleCancelWorkout}>
                             Peruuta
@@ -253,15 +274,28 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+    },
+    middleAddExercise: {
+        flex: 1,
     },
     setFields: {
         marginTop: 20,
+        marginBottom: 20,
         flexDirection: 'row',
+        alignItems: 'center',
     },
-    input: {
+    setField: {
+        width: '30%',
+        marginRight: 10,
         borderWidth: 1,
-
-    }
+    },
+    bottom: {
+        flex: 1,
+        marginTop: 20,
+    },
+    bottomExerciseCards: {
+        flex: 1,
+    },
 });

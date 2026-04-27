@@ -14,7 +14,7 @@ export default function Library() {
 
   const [open, setOpen] = useState(false);
   const [exModalVisible, setExModalVisible] = useState(false);
-  const [ilModalVisible, setilModalVisible] = useState(false);
+  const [ilModalVisible, setIlModalVisible] = useState(false);
   const [input, setInput] = useState('');
   const [exerciseValue, setExerciseValue] = useState(null);
   const [exercises, setExercises] = useState([]);
@@ -23,8 +23,9 @@ export default function Library() {
   const [searchKey, setSearchKey] = useState('');
   const [exerciseData, setExerciseData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [illustration, setIllustration] = useState('');
+  const [illustration, setIllustration] = useState(null);
 
+  // https://www.npmjs.com/package/react-native-axios
   const handleFetch = () => {
     setLoading(true);
     const axios = require('axios');
@@ -80,18 +81,20 @@ export default function Library() {
       }
     };
 
-
     axios.request(config)
       .then((response) => {
+        // https://github.com/software-mansion/react-native-svg/issues/2458
+        // https://www.geeksforgeeks.org/javascript/how-to-remove-text-from-a-string-in-javascript/
         const cleanSvg = response.data
           .replace(/<\?xml.*?\?>/g, '')
           .replace(/<!DOCTYPE.*?>/g, '');
         setIllustration(cleanSvg);
+        console.log(cleanSvg);
       })
       .catch((error) => {
         console.log(error);
       })
-      .finally(() => setilModalVisible(true));
+      .finally(() => setIlModalVisible(true));
   }
 
   const handleCreateExercise = async () => {
@@ -164,72 +167,83 @@ export default function Library() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <Text variant='titleLarge'>Lisää uusi liike liikepankkiin</Text>
-        <TextInput
-          style={styles.textInput}
-          label="Liikkeen nimi"
-          value={exercise}
-          onChangeText={setExercise}
-        />
-        <Button mode='contained' onPress={handleCreateExercise}>Lisää liike</Button>
 
-        <Text variant='titleLarge'>Poista tai muokkaa</Text>
-        <DropDownPicker
-          placeholder='Valitse liike'
-          open={open}
-          value={exerciseValue}
-          items={exercises}
-          setOpen={setOpen}
-          setValue={setExerciseValue}
-          setItems={setExercises}
-          listMode="MODAL"
-          modalTitle="Valitse liike"
-          searchable={false}
-        />
+        <Text variant='titleMedium'>Lisää uusi liike liikepankkiin</Text>
+        <View style={styles.inputAndButton}>
+          <TextInput
+            style={styles.textInput}
+            label="Liikkeen nimi"
+            value={exercise}
+            onChangeText={setExercise}
+          />
+          <Button mode='contained' onPress={handleCreateExercise}>Lisää liike</Button>
+        </View>
 
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={exModalVisible}
-        >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text>Anna uusi nimi liikkeelle</Text>
-              <TextInput style={styles.textInput} value={input} onChangeText={setInput} />
-              <Button mode="contained" onPress={() => setExModalVisible(false)}>
-                Peruuta
-              </Button>
-              <Button mode="contained" onPress={handleEditExercise}>
-                Tallenna
-              </Button>
+        <View style={styles.middlePart}>
+          <Text variant='titleMedium'>Poista tai muokkaa liikettä</Text>
+          <DropDownPicker
+            placeholder='Valitse liike'
+            open={open}
+            value={exerciseValue}
+            items={exercises}
+            setOpen={setOpen}
+            setValue={setExerciseValue}
+            setItems={setExercises}
+            listMode="MODAL"
+            modalTitle="Valitse liike"
+            searchable={false}
+          />
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={exModalVisible}>
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text>Anna uusi nimi liikkeelle</Text>
+                <TextInput style={styles.modalTextInput} value={input} onChangeText={setInput} />
+                <View style={styles.buttons}>
+                  <Button style={styles.button} mode="contained" onPress={() => setExModalVisible(false)}>
+                    Peruuta
+                  </Button>
+                  <Button mode="contained" onPress={handleEditExercise}>
+                    Tallenna
+                  </Button>
+                </View>
+              </View>
             </View>
+          </Modal>
+
+          <View style={styles.buttons}>
+            <Button style={styles.button} mode='contained' onPress={handleDeleteExercise}>Poista</Button>
+            <Button mode='contained' onPress={() => {
+              if (!exerciseValue) {
+                Alert.alert('Valitse liike');
+                return;
+              }
+              const selected = exercises.find((item) => item.value === exerciseValue);
+              setInput(selected?.label);
+              setExModalVisible(true)
+            }}>
+              Muokkaa
+            </Button>
           </View>
-        </Modal>
-        <View style={{ flexDirection: 'row' }}>
-          <Button mode='contained' onPress={handleDeleteExercise}>Poista</Button>
-          <Button mode='contained' onPress={() => {
-            if (!exerciseValue) {
-              Alert.alert('Valitse liike');
-              return;
-            }
-            const selected = exercises.find((item) => item.value === exerciseValue);
-            setInput(selected?.label);
-            setExModalVisible(true)
-          }}>
-            Muokkaa
+        </View>
+
+        <Text variant='titleMedium'>Workout-liikepankki</Text>
+        <Text>Hae liikkeitä lihasryhmille Workout-liikepankista englanninkielisellä hakusanalla</Text>
+
+        <View style={styles.inputAndButton}>
+          <TextInput
+            style={styles.textInput}
+            label="Esim. shoulders"
+            value={searchKey}
+            onChangeText={text => setSearchKey(text)} />
+          <Button loading={loading} mode='contained' onPress={handleFetch}>
+            Etsi
           </Button>
         </View>
 
-        <Text variant='titleLarge'>Workout-liikepankki</Text>
-        <Text>Hae liikkeitä lihasryhmille Workout-liikepankista englanninkielisellä hakusanalla</Text>
-        <TextInput
-          style={styles.textInput}
-          label="Esim. shoulders"
-          value={searchKey}
-          onChangeText={text => setSearchKey(text)} />
-        <Button loading={loading} mode='contained' onPress={handleFetch}>
-          Etsi
-        </Button>
         <FlatList
           data={exerciseData}
           renderItem={({ item }) =>
@@ -256,7 +270,7 @@ export default function Library() {
               <SvgXml xml={illustration} width={200}
                 height={200}
               />
-              <Button mode="contained" onPress={() => setilModalVisible(false)}>
+              <Button mode="contained" onPress={() => setIlModalVisible(false)}>
                 Sulje
               </Button>
             </View>
@@ -272,13 +286,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    padding: 20,
+  },
+  inputAndButton: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row'
+  },
+  middlePart: {
+    marginBottom: 30,
+    marginTop: 30,
   },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+
   },
   modalView: {
     margin: 20,
@@ -295,8 +317,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  textInput: {
-    width: '100%',
+  modalTextInput: {
+    width: '90%',
     marginBottom: 10,
+  },
+  buttons: {
+    marginTop: 10,
+    flexDirection: 'row',
+  },
+  button: {
+    marginRight: 10,
+  },
+  textInput: {
+    flex: 1,
+    marginBottom: 10,
+    marginRight: 10,
   },
 });

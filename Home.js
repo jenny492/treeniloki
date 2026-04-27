@@ -54,7 +54,6 @@ export default function Home() {
   }
 
   const handleDeleteWorkout = async (workoutId) => {
-    console.log(workoutId);
     try {
       await deleteWorkout(workoutId);
     } catch (error) {
@@ -63,30 +62,52 @@ export default function Home() {
     fetchWorkouts();
   }
 
-  // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran(?)
+  // https://stackoverflow.com/questions/68472573/react-native-if-else-condition-in-array-map
+  const setRow = (set) => {
+    if (!set.weight && !set.reps) {
+      return;
+    } else if (!set.reps) {
+      return <Text key={set.set_entry_id} variant="bodyMedium">
+        {set.weight} kg
+      </Text>;
+    } else {
+      return <Text key={set.set_entry_id} variant="bodyMedium">
+        {set.weight} kg, {set.reps} toistoa
+      </Text>;
+    }
+  }
+
+  // käytä tässä useFocusEffectiä, jotta data päivittyy joka kerta kun sivu avataan, eikä vain kerran
   useFocusEffect(useCallback(() => { fetchWorkouts() }, []));
 
   // Tietojen näyttäminen: https://stackoverflow.com/questions/61242323/react-native-flatlist-how-to-loop-through-nested-object
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <Text variant='displayMedium'>Treeniloki</Text>
+
         <FlatList
           data={workouts}
           renderItem={({ item }) =>
-            <Card style={{ marginBottom: 10, width: 300 }}>
-              <Card.Title title={item.date} />
+
+            <Card style={{ marginBottom: 10 }}>
+              <Card.Title title={item.date} titleVariant='headlineSmall' />
+
               {item.exercises.map((e, i) => (
                 <Card.Content key={e.exercise_id}>
-                  <Text variant="titleMedium">{e.name}</Text>
-                  {e.sets.map((s, i) => (
-                    <Text key={s.set_entry_id}>{s.weight} kg, {s.reps} toistoa</Text>
-                  ))}
+                  <Text variant="titleMedium" style={{ fontWeight: 'bold', marginTop: 5 }}>
+                    {e.name}
+                  </Text>
+
+                  {e.sets.map((s, i) => {
+                    return setRow(s);
+                  })}
                 </Card.Content>
               ))}
+
               <Card.Actions>
-                <IconButton icon="delete" onPress={() => handleDeleteWorkout(item.workout_id)} />
+                <IconButton icon="delete" mode='contained-tonal' onPress={() => handleDeleteWorkout(item.workout_id)} />
               </Card.Actions>
+
             </Card>
           }
         />
@@ -99,7 +120,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
 });
