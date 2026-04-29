@@ -147,7 +147,6 @@ export default function NewWorkout({ navigation }) {
             },
             {
                 text: 'Ei',
-                onPress: () => Alert.alert('Ei tallennettu'),
             }
         ]);
         ;
@@ -187,6 +186,7 @@ export default function NewWorkout({ navigation }) {
                     />
                 </View>
 
+                 {/* liikkeen lisäys ja toistojen listaus */}
                 {exerciseValue && (
                     <View style={styles.middleAddExercise}>
                         <View style={styles.setFields}>
@@ -212,6 +212,7 @@ export default function NewWorkout({ navigation }) {
 
                         <FlatList
                             data={currentSet}
+                            keyExtractor={currentSet.id}
                             renderItem={({ item }) =>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Text variant="bodyLarge">
@@ -227,6 +228,7 @@ export default function NewWorkout({ navigation }) {
                     </View>
                 )}
 
+                {/* harjoitukselle tallennettujen liikkeiden listaus */}
                 {!exerciseValue && (
                     <View style={styles.bottom}>
                         <Text variant='titleMedium'>Tehdyt liikkeet</Text>

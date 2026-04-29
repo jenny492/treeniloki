@@ -60,6 +60,7 @@ export default function Library() {
       })
       .catch((error) => {
         console.error('Error fetching data from Workout API', error);
+        Alert.alert('Virhe tietojen lataamisessa.');
       })
       .finally(() => setLoading(false));
 
@@ -90,6 +91,7 @@ export default function Library() {
       })
       .catch((error) => {
         console.error('Error fetching illustration', error);
+        Alert.alert('Virhe tietojen lataamisessa.');
       })
       .finally(() => setIlModalVisible(true));
   }

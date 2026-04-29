@@ -81,11 +81,16 @@ export default function Home() {
   const setRow = (set) => {
     if (!set.weight && !set.reps) {
       return;
-    } else if (!set.reps) {
+    } else if (set.weight && !set.reps) {
       return <Text key={set.set_entry_id} variant="bodyMedium">
         {set.weight} kg
       </Text>;
-    } else {
+    } else if (!set.weight && set.reps) {
+      return <Text key={set.set_entry_id} variant="bodyMedium">
+        {set.reps} toistoa
+      </Text>;
+    } 
+    else {
       return <Text key={set.set_entry_id} variant="bodyMedium">
         {set.weight} kg, {set.reps} toistoa
       </Text>;
