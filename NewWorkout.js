@@ -161,6 +161,26 @@ export default function NewWorkout({ navigation }) {
         }
     };
 
+    // https://stackoverflow.com/questions/68472573/react-native-if-else-condition-in-array-map
+    const setRow = (set) => {
+        if (!set.weight && !set.reps) {
+            return;
+        } else if (set.weight && !set.reps) {
+            return <Text key={set.set_entry_id} variant="bodyMedium">
+                {set.weight} kg
+            </Text>;
+        } else if (!set.weight && set.reps) {
+            return <Text key={set.set_entry_id} variant="bodyMedium">
+                {set.reps} toistoa
+            </Text>;
+        }
+        else {
+            return <Text key={set.set_entry_id} variant="bodyMedium">
+                {set.weight} kg, {set.reps} toistoa
+            </Text>;
+        }
+    }
+
     useFocusEffect(
         useCallback(() => {
             updateExercises();
@@ -186,7 +206,7 @@ export default function NewWorkout({ navigation }) {
                     />
                 </View>
 
-                 {/* liikkeen lisäys ja toistojen listaus */}
+                {/* liikkeen lisäys ja toistojen listaus */}
                 {exerciseValue && (
                     <View style={styles.middleAddExercise}>
                         <View style={styles.setFields}>
@@ -216,7 +236,7 @@ export default function NewWorkout({ navigation }) {
                             renderItem={({ item }) =>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Text variant="bodyLarge">
-                                        {item.weight} kg, {item.reps} toistoa
+                                        {setRow(item)}
                                     </Text>
                                     <IconButton icon='delete-outline' onPress={() => handleDeleteRep(item.setEntryId)} />
                                 </View>
@@ -240,7 +260,7 @@ export default function NewWorkout({ navigation }) {
                                     <Card.Content>
                                         {item.sets.map((setItem, index) => (
                                             <Text variant="bodyMedium" key={index}>
-                                                {setItem.weight} kg, {setItem.reps} toistoa
+                                                {setRow(setItem)}
                                             </Text>
                                         ))}
 

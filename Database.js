@@ -34,7 +34,7 @@ const createTables = async () => {
                 exercise_id INTEGER NOT NULL, 
                 weight INTEGER, 
                 reps INTEGER, 
-                FOREIGN KEY(workout_id) REFERENCES workout(workout_id),
+                FOREIGN KEY(workout_id) REFERENCES workout(workout_id) ON DELETE CASCADE,
                 FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
             );
 
