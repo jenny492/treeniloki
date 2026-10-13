@@ -7,6 +7,7 @@ export const db = SQLite.openDatabaseSync('treenilokidb');
 
 export const initialize = async () => {
     try {
+        await db.execAsync('PRAGMA foreign_keys = ON;');
         await createTables();
     } catch (error) {
         console.error('Could not open database', error);
@@ -31,19 +32,66 @@ const createTables = async () => {
             CREATE TABLE IF NOT EXISTS set_entry (
                 set_entry_id INTEGER PRIMARY KEY NOT NULL,
                 workout_id INTEGER NOT NULL, 
-                exercise_id INTEGER NOT NULL, 
+                exercise_id INTEGER,
+                exercise_name TEXT NOT NULL,
                 weight INTEGER, 
                 reps INTEGER, 
                 FOREIGN KEY(workout_id) REFERENCES workout(workout_id) ON DELETE CASCADE,
-                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id)
+                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id) ON DELETE SET NULL
             );
 
     `);
 
+        await migrateSetEntryTable();
     } catch (error) {
         console.error('Could not create tables', error);
     }
 }
+
+const migrateSetEntryTable = async () => {
+    const columns = await db.getAllAsync('PRAGMA table_info(set_entry)');
+    const exerciseIdColumn = columns.find((column) => column.name === 'exercise_id');
+    const hasExerciseName = columns.some((column) => column.name === 'exercise_name');
+    const foreignKeys = await db.getAllAsync('PRAGMA foreign_key_list(set_entry)');
+    const exerciseForeignKey = foreignKeys.find((foreignKey) => foreignKey.from === 'exercise_id');
+
+    if (
+        exerciseIdColumn?.notnull === 0 &&
+        hasExerciseName &&
+        exerciseForeignKey?.on_delete === 'SET NULL'
+    ) {
+        return;
+    }
+
+    const exerciseName = hasExerciseName
+        ? "COALESCE(se.exercise_name, e.name, 'Poistettu liike')"
+        : "COALESCE(e.name, 'Poistettu liike')";
+
+    await db.withTransactionAsync(async () => {
+        await db.execAsync(`
+            CREATE TABLE set_entry_new (
+                set_entry_id INTEGER PRIMARY KEY NOT NULL,
+                workout_id INTEGER NOT NULL,
+                exercise_id INTEGER,
+                exercise_name TEXT NOT NULL,
+                weight INTEGER,
+                reps INTEGER,
+                FOREIGN KEY(workout_id) REFERENCES workout(workout_id) ON DELETE CASCADE,
+                FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id) ON DELETE SET NULL
+            );
+
+            INSERT INTO set_entry_new (set_entry_id, workout_id, exercise_id, exercise_name, weight, reps)
+            SELECT se.set_entry_id, se.workout_id,
+                CASE WHEN e.exercise_id IS NULL THEN NULL ELSE se.exercise_id END,
+                ${exerciseName}, se.weight, se.reps
+            FROM set_entry se
+            LEFT JOIN exercise e ON se.exercise_id = e.exercise_id;
+
+            DROP TABLE set_entry;
+            ALTER TABLE set_entry_new RENAME TO set_entry;
+        `);
+    });
+};
 
 export const createWorkout = async () => {
     try {
@@ -91,9 +139,24 @@ export const getExerciseByName = async (name) => {
 
 export const deleteExercise = async (exerciseId) => {
     try {
-        await db.runAsync('DELETE FROM exercise WHERE exercise_id = ?', Number(exerciseId));
+        const id = Number(exerciseId);
+        await db.withTransactionAsync(async () => {
+            await db.runAsync(
+                `UPDATE set_entry
+                SET exercise_name = COALESCE(
+                        (SELECT name FROM exercise WHERE exercise_id = ?),
+                        exercise_name
+                    ),
+                    exercise_id = NULL
+                WHERE exercise_id = ?`,
+                id,
+                id
+            );
+            await db.runAsync('DELETE FROM exercise WHERE exercise_id = ?', id);
+        });
     } catch (error) {
         console.error('Could not delete exercise', error);
+        throw error;
     }
 }
 
@@ -136,13 +199,13 @@ export const getAllData = async () => {
             se.set_entry_id, 
             w.workout_id, 
             w.date, 
-            e.exercise_id, 
-            e.name, 
+            se.exercise_id,
+            COALESCE(e.name, se.exercise_name) AS name,
             se.weight, 
             se.reps 
             FROM set_entry se 
             JOIN workout w ON se.workout_id = w.workout_id 
-            JOIN exercise e ON se.exercise_id = e.exercise_id;`)
+            LEFT JOIN exercise e ON se.exercise_id = e.exercise_id;`)
         return result;
     } catch (error) {
         console.error('Could not fetch workouts', error);
@@ -152,7 +215,10 @@ export const getAllData = async () => {
 
 export const saveReps = async (workoutId, exerciseId, weight, reps) => {
     try {
-        await db.runAsync('INSERT INTO set_entry (workout_id, exercise_id, weight, reps) VALUES (?, ?, ?, ?)', Number(workoutId), Number(exerciseId), Number(weight), Number(reps));
+        await db.runAsync(`
+            INSERT INTO set_entry (workout_id, exercise_id, exercise_name, weight, reps)
+            VALUES (?, ?, (SELECT name FROM exercise WHERE exercise_id = ?), ?, ?)
+        `, Number(workoutId), Number(exerciseId), Number(exerciseId), Number(weight), Number(reps));
         const result = await db.getAllAsync('SELECT last_insert_rowid();'); // https://forum.xojo.com/t/sqlite-return-id-of-record-inserted/37896/3
         return result[0]['last_insert_rowid()'];
     } catch (error) {
@@ -200,4 +266,3 @@ export const getExerciseById = async (exerciseId) => {
         return null;
     }
 }
-

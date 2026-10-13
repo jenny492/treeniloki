@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet } from 'react-native';
 import { Card, IconButton, Text } from 'react-native-paper';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { deleteWorkout, getAllData } from './Database';
 
 export default function Home() {
@@ -26,7 +26,9 @@ export default function Home() {
           };
         }
 
-        let exercise = acc[workout_id].exercises.find(ex => ex.exercise_id === currentWorkout.exercise_id);
+        let exercise = acc[workout_id].exercises.find(ex =>
+          ex.exercise_id === currentWorkout.exercise_id && ex.name === currentWorkout.name
+        );
         if (!exercise) {
           exercise = {
             exercise_id: currentWorkout.exercise_id,
@@ -102,8 +104,7 @@ export default function Home() {
 
   // Tietojen näyttäminen: https://stackoverflow.com/questions/61242323/react-native-flatlist-how-to-loop-through-nested-object
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaProvider style={styles.container}>
 
         <FlatList
           data={workouts}
@@ -113,7 +114,7 @@ export default function Home() {
               <Card.Title title={item.date} titleVariant='headlineSmall' />
 
               {item.exercises.map((e, i) => (
-                <Card.Content key={e.exercise_id}>
+                <Card.Content key={e.exercise_id ?? e.name}>
                   <Text variant="titleMedium" style={{ fontWeight: 'bold', marginTop: 5 }}>
                     {e.name}
                   </Text>
@@ -131,7 +132,6 @@ export default function Home() {
             </Card>
           }
         />
-      </SafeAreaView>
     </SafeAreaProvider>
   );
 }

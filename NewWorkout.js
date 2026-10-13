@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Button, Card, IconButton, Text, TextInput } from 'react-native-paper';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createWorkout, deleteExerciseFromWorkout, deleteSetEntry, deleteWorkout, getAllExercises, saveReps } from './Database';
 
 export default function NewWorkout({ navigation }) {
@@ -188,9 +188,7 @@ export default function NewWorkout({ navigation }) {
     );
 
     return (
-        <SafeAreaProvider>
-            <SafeAreaView style={styles.container}>
-
+        <SafeAreaProvider style={styles.container}>
                 <View style={styles.topDropdown}>
                     <DropDownPicker
                         placeholder='Valitse liike'
@@ -279,8 +277,6 @@ export default function NewWorkout({ navigation }) {
                         </Button>
                     </View>
                 )}
-
-            </SafeAreaView>
         </SafeAreaProvider>
     );
 }

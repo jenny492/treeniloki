@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Alert, FlatList, Modal, StyleSheet, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Button, Card, SegmentedButtons, Text, TextInput } from 'react-native-paper';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import { createExercise, deleteExercise, editExercise, getAllExercises } from './Database';
 
@@ -133,6 +133,7 @@ export default function Library() {
       Alert.alert('Liike poistettu');
     } catch (error) {
       console.error('Error deleting exercise', error);
+      Alert.alert('Virhe', 'Liikettä ei voitu poistaa.');
     }
   }
 
@@ -165,8 +166,7 @@ export default function Library() {
   useEffect(() => { updateExercises() }, []);
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaProvider style={styles.container}>
         <SegmentedButtons
           value={segButtonValue}
           onValueChange={setSegButtonValue}
@@ -298,8 +298,6 @@ export default function Library() {
             </Modal>
           </View>
         )}
-
-      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
