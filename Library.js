@@ -4,9 +4,9 @@
 
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Modal, StyleSheet, View } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { Button, Card, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
 import { SvgXml } from 'react-native-svg';
 import { createExercise, deleteExercise, editExercise, getAllExercises } from './Database';
 
@@ -14,7 +14,6 @@ export default function Library() {
 
   const [segButtonValue, setSegButtonValue] = useState('');
 
-  const [open, setOpen] = useState(false);
   const [exModalVisible, setExModalVisible] = useState(false);
   const [ilModalVisible, setIlModalVisible] = useState(false);
   const [input, setInput] = useState('');
@@ -167,137 +166,135 @@ export default function Library() {
 
   return (
     <SafeAreaProvider style={styles.container}>
-        <SegmentedButtons
-          value={segButtonValue}
-          onValueChange={setSegButtonValue}
-          buttons={[
-            {
-              value: 'liikepankki',
-              label: 'Liikepankki',
-            },
-            {
-              value: 'liikehaku',
-              label: 'Liikehaku',
-            }
-          ]}
-        />
+      <SegmentedButtons
+        value={segButtonValue}
+        onValueChange={setSegButtonValue}
+        buttons={[
+          {
+            value: 'liikepankki',
+            label: 'Liikepankki',
+          },
+          {
+            value: 'liikehaku',
+            label: 'Liikehaku',
+          }
+        ]}
+      />
 
-        {segButtonValue === 'liikepankki' && (
-          <View>
-            <Text variant='titleMedium'>Lisää uusi liike liikepankkiin</Text>
-            <View style={styles.inputAndButton}>
-              <TextInput
-                style={styles.textInput}
-                label="Liikkeen nimi"
-                value={exercise}
-                onChangeText={setExercise}
-              />
-              <Button mode='contained' onPress={handleCreateExercise}>Lisää liike</Button>
-            </View>
-
-            <View style={styles.middlePart}>
-              <Text variant='titleMedium'>Poista tai muokkaa liikettä</Text>
-              <DropDownPicker
-                placeholder='Valitse liike'
-                open={open}
-                value={exerciseValue}
-                items={exercises}
-                setOpen={setOpen}
-                setValue={setExerciseValue}
-                setItems={setExercises}
-                listMode="MODAL"
-                modalTitle="Valitse liike"
-                searchable={false}
-              />
-
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={exModalVisible}>
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <Text>Anna uusi nimi liikkeelle</Text>
-                    <TextInput style={styles.modalTextInput} value={input} onChangeText={setInput} />
-                    <View style={styles.buttons}>
-                      <Button style={styles.button} mode="contained" onPress={() => setExModalVisible(false)}>
-                        Peruuta
-                      </Button>
-                      <Button mode="contained" onPress={handleEditExercise}>
-                        Tallenna
-                      </Button>
-                    </View>
-                  </View>
-                </View>
-              </Modal>
-
-              <View style={styles.buttons}>
-                <Button style={styles.button} mode='contained' onPress={handleDeleteExercise}>Poista</Button>
-                <Button mode='contained' onPress={() => {
-                  if (!exerciseValue) {
-                    Alert.alert('Valitse liike');
-                    return;
-                  }
-                  const selected = exercises.find((item) => item.value === exerciseValue);
-                  setInput(selected?.label);
-                  setExModalVisible(true)
-                }}>
-                  Muokkaa
-                </Button>
-              </View>
-            </View>
+      {segButtonValue === 'liikepankki' && (
+        <View>
+          <Text variant='titleMedium'>Lisää uusi liike liikepankkiin</Text>
+          <View style={styles.inputAndButton}>
+            <TextInput
+              style={styles.textInput}
+              label="Liikkeen nimi"
+              value={exercise}
+              onChangeText={setExercise}
+            />
+            <Button mode='contained' onPress={handleCreateExercise}>Lisää liike</Button>
           </View>
-        )}
 
-        {segButtonValue === 'liikehaku' && (
-          <View>
-            <Text variant='titleMedium'>Workout-liikepankki</Text>
-            <Text>Hae liikkeitä lihasryhmille Workout-liikepankista englanninkielisellä hakusanalla</Text>
-
-            <View style={styles.inputAndButton}>
-              <TextInput
-                style={styles.textInput}
-                label="Esim. shoulders"
-                value={searchKey}
-                onChangeText={text => setSearchKey(text)} />
-              <Button loading={loading} mode='contained' onPress={handleFetch}>
-                Etsi
-              </Button>
-            </View>
-
-            <FlatList
-              data={exerciseData}
-              renderItem={({ item }) =>
-                <Card style={{ marginBottom: 10 }}>
-                  <Card.Title title={item.name} />
-                  <Card.Content>
-                    <Text variant="bodyMedium">{item.description}</Text>
-                  </Card.Content>
-                  <Card.Actions>
-                    <Button onPress={() => handleFetchIllustration(item.id)}>
-                      Illustration
-                    </Button>
-                  </Card.Actions>
-                </Card>
-              } />
+          <View style={styles.middlePart}>
+            <Text variant='titleMedium'>Poista tai muokkaa liikettä</Text>
+            <Picker
+              selectedValue={exerciseValue}
+              onValueChange={(itemValue, itemIndex) =>
+                setExerciseValue(itemValue)
+              }>
+              <Picker.Item label="Valitse liike" value={null} />
+              {exercises.map((exercise) => (
+                <Picker.Item key={exercise.value} label={exercise.label} value={exercise.value} />
+              ))}
+            </Picker>
 
             <Modal
               animationType="slide"
               transparent={true}
-              visible={ilModalVisible}
-            >
+              visible={exModalVisible}>
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
-                  <SvgXml xml={illustration} width={200}
-                    height={200}
-                  />
-                  <Button mode="contained" onPress={() => setIlModalVisible(false)}>
-                    Sulje
-                  </Button>
+                  <Text>Anna uusi nimi liikkeelle</Text>
+                  <TextInput style={styles.modalTextInput} value={input} onChangeText={setInput} />
+                  <View style={styles.buttons}>
+                    <Button style={styles.button} mode="contained" onPress={() => setExModalVisible(false)}>
+                      Peruuta
+                    </Button>
+                    <Button mode="contained" onPress={handleEditExercise}>
+                      Tallenna
+                    </Button>
+                  </View>
                 </View>
               </View>
             </Modal>
+
+            <View style={styles.buttons}>
+              <Button style={styles.button} mode='contained' onPress={handleDeleteExercise}>Poista</Button>
+              <Button mode='contained' onPress={() => {
+                if (!exerciseValue) {
+                  Alert.alert('Valitse liike');
+                  return;
+                }
+                const selected = exercises.find((item) => item.value === exerciseValue);
+                setInput(selected?.label);
+                setExModalVisible(true)
+              }}>
+                Muokkaa
+              </Button>
+            </View>
           </View>
-        )}
+        </View>
+      )}
+
+      {segButtonValue === 'liikehaku' && (
+        <View>
+          <Text variant='titleMedium'>Workout-liikepankki</Text>
+          <Text>Hae liikkeitä lihasryhmille Workout-liikepankista englanninkielisellä hakusanalla</Text>
+
+          <View style={styles.inputAndButton}>
+            <TextInput
+              style={styles.textInput}
+              label="Esim. shoulders"
+              value={searchKey}
+              onChangeText={text => setSearchKey(text)} />
+            <Button loading={loading} mode='contained' onPress={handleFetch}>
+              Etsi
+            </Button>
+          </View>
+
+          <FlatList
+            data={exerciseData}
+            renderItem={({ item }) =>
+              <Card style={{ marginBottom: 10 }}>
+                <Card.Title title={item.name} />
+                <Card.Content>
+                  <Text variant="bodyMedium">{item.description}</Text>
+                </Card.Content>
+                <Card.Actions>
+                  <Button onPress={() => handleFetchIllustration(item.id)}>
+                    Illustration
+                  </Button>
+                </Card.Actions>
+              </Card>
+            } />
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={ilModalVisible}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <SvgXml xml={illustration} width={200}
+                  height={200}
+                />
+                <Button mode="contained" onPress={() => setIlModalVisible(false)}>
+                  Sulje
+                </Button>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      )}
     </SafeAreaProvider>
   );
 }

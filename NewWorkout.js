@@ -4,14 +4,13 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { Button, Card, IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
 import { createWorkout, deleteExerciseFromWorkout, deleteSetEntry, deleteWorkout, getAllExercises, saveReps } from './Database';
 
 export default function NewWorkout({ navigation }) {
 
-    const [open, setOpen] = useState(false);
     const [exerciseValue, setExerciseValue] = useState(null);
     const [exercises, setExercises] = useState([]);
     const [savedExercises, setSavedExercises] = useState([]);
@@ -189,94 +188,92 @@ export default function NewWorkout({ navigation }) {
 
     return (
         <SafeAreaProvider style={styles.container}>
-                <View style={styles.topDropdown}>
-                    <DropDownPicker
-                        placeholder='Valitse liike'
-                        open={open}
-                        value={exerciseValue}
-                        items={exercises}
-                        setOpen={setOpen}
-                        setValue={setExerciseValue}
-                        setItems={setExercises}
-                        listMode="MODAL"
-                        modalTitle="Valitse liike"
-                        searchable={false}
+            <View style={styles.topDropdown}>
+                <Picker
+                    selectedValue={exerciseValue}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setExerciseValue(itemValue)
+                    }>
+                    <Picker.Item label="Valitse liike" value={null} />
+                    {exercises.map((exercise) => (
+                        <Picker.Item key={exercise.value} label={exercise.label} value={exercise.value} />
+                    ))}
+                </Picker>
+            </View>
+
+            {/* liikkeen lisäys ja toistojen listaus */}
+            {exerciseValue && (
+                <View style={styles.middleAddExercise}>
+                    <View style={styles.setFields}>
+                        <TextInput
+                            label="Paino"
+                            value={weight}
+                            onChangeText={setWeight}
+                            keyboardType='numeric'
+                            style={styles.setField}
+                        />
+                        <TextInput
+                            label="Toistot"
+                            value={reps}
+                            onChangeText={setReps}
+                            keyboardType='numeric'
+                            style={styles.setField}
+                        />
+
+                        <Button mode="contained" onPress={addReps}>
+                            Tallenna
+                        </Button>
+                    </View>
+
+                    <FlatList
+                        data={currentSet}
+                        keyExtractor={currentSet.id}
+                        renderItem={({ item }) =>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text variant="bodyLarge">
+                                    {setRow(item)}
+                                </Text>
+                                <IconButton icon='delete-outline' onPress={() => handleDeleteRep(item.setEntryId)} />
+                            </View>
+                        }
                     />
+                    <Button mode="contained" onPress={handleAddExercise}>
+                        Seuraava liike
+                    </Button>
                 </View>
+            )}
 
-                {/* liikkeen lisäys ja toistojen listaus */}
-                {exerciseValue && (
-                    <View style={styles.middleAddExercise}>
-                        <View style={styles.setFields}>
-                            <TextInput
-                                label="Paino"
-                                value={weight}
-                                onChangeText={setWeight}
-                                keyboardType='numeric'
-                                style={styles.setField}
-                            />
-                            <TextInput
-                                label="Toistot"
-                                value={reps}
-                                onChangeText={setReps}
-                                keyboardType='numeric'
-                                style={styles.setField}
-                            />
+            {/* harjoitukselle tallennettujen liikkeiden listaus */}
+            {!exerciseValue && (
+                <View style={styles.bottom}>
+                    <Text variant='titleMedium'>Tehdyt liikkeet</Text>
+                    <FlatList
+                        data={savedExercises}
+                        renderItem={({ item }) =>
+                            <Card style={{ marginBottom: 10 }}>
+                                <Card.Title title={item.name} />
+                                <Card.Content>
+                                    {item.sets.map((setItem, index) => (
+                                        <Text variant="bodyMedium" key={index}>
+                                            {setRow(setItem)}
+                                        </Text>
+                                    ))}
 
-                            <Button mode="contained" onPress={addReps}>
-                                Tallenna
-                            </Button>
-                        </View>
-
-                        <FlatList
-                            data={currentSet}
-                            keyExtractor={currentSet.id}
-                            renderItem={({ item }) =>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text variant="bodyLarge">
-                                        {setRow(item)}
-                                    </Text>
-                                    <IconButton icon='delete-outline' onPress={() => handleDeleteRep(item.setEntryId)} />
-                                </View>
-                            }
-                        />
-                        <Button mode="contained" onPress={handleAddExercise}>
-                            Seuraava liike
-                        </Button>
-                    </View>
-                )}
-
-                {/* harjoitukselle tallennettujen liikkeiden listaus */}
-                {!exerciseValue && (
-                    <View style={styles.bottom}>
-                        <Text variant='titleMedium'>Tehdyt liikkeet</Text>
-                        <FlatList
-                            data={savedExercises}
-                            renderItem={({ item }) =>
-                                <Card style={{ marginBottom: 10 }}>
-                                    <Card.Title title={item.name} />
-                                    <Card.Content>
-                                        {item.sets.map((setItem, index) => (
-                                            <Text variant="bodyMedium" key={index}>
-                                                {setRow(setItem)}
-                                            </Text>
-                                        ))}
-
-                                    </Card.Content>
-                                    <Card.Actions>
-                                        <IconButton icon="delete" onPress={() => handleDeleteExercise(item.exerciseId)} />
-                                    </Card.Actions>
-                                </Card>
-                            }
-                        />
-                        <Button mode="contained" onPress={handleSaveExercise}>
-                            Tallenna treeni
-                        </Button>
-                        <Button onPress={handleCancelWorkout}>
-                            Peruuta
-                        </Button>
-                    </View>
-                )}
+                                </Card.Content>
+                                <Card.Actions>
+                                    <IconButton icon="delete" onPress={() => handleDeleteExercise(item.exerciseId)} />
+                                </Card.Actions>
+                            </Card>
+                        }
+                    />
+                    <Button mode="contained" onPress={handleSaveExercise}>
+                        Tallenna treeni
+                    </Button>
+                    <Button onPress={handleCancelWorkout}>
+                        Peruuta
+                    </Button>
+                </View>
+            )}
         </SafeAreaProvider>
     );
 }
